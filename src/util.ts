@@ -24,8 +24,8 @@ export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): Array<PIXI.Con
         mask.endFill();
 
         const border = new PIXI.Graphics();
-        border.lineStyle({ width: 4, color: 0x000000 });
-        border.drawRoundedRect(0, 0, 404, 617, 34);
+        border.lineStyle({ width: 2, color: 0x000000 });
+        border.drawRoundedRect(0, 0, 404, 618, 34);
 
         const cardTexture = new PIXI.Texture(sheet, new PIXI.Rectangle(50 + (i * 458), 850 + (name * 660), 404, 618));
         const card = PIXI.Sprite.from(cardTexture);

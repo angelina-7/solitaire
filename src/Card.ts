@@ -36,21 +36,21 @@ export class Card extends PIXI.Container {
     }
 
     protected addBack() {
-        const cardBack = PIXI.Sprite.from('assets/card-back.jpg');
+        const cardBack = PIXI.Sprite.from('assets/card-back.jpeg');
         cardBack.scale.set(0.2);
 
         const mask = new PIXI.Graphics();
         mask.beginFill(0xffffff);
-        mask.drawRoundedRect(1, 0, 121, 183, 10);
+        mask.drawRoundedRect(0, 0, 120, 183, 12);
         mask.endFill();
 
         cardBack.mask = mask;
 
         const border = new PIXI.Graphics();
         border.lineStyle({ width: 2, color: 0x000000 });
-        border.drawRoundedRect(0, 0, 122, 183, 10);
+        border.drawRoundedRect(0, 0, 120, 183, 12);
 
-        this.back.addChild(border, mask, cardBack);
+        this.back.addChild(cardBack, mask, border);
         this.addChild(this.back);
     }
 
@@ -61,18 +61,20 @@ export class Card extends PIXI.Container {
 
     public flip() {
         const tl = gsap.timeline();
-        tl.to(this, {pixi: {scale: 1.05}, yoyo: true, duration: 0.3, repeat: 1, ease: 'none'})
-        tl.to(this, {pixi: {scaleX: 0}, yoyo: true, duration: 0.3, repeat: 1, ease: 'none', onRepeat: () => {
-            if (this.fasingUp) {
-                this.fasingUp = false;
-                this.removeChildren();
-                this.addBack();
-            } else {
-                this.fasingUp = true;
-                this.removeChildren();
-                this.addChild(this.face);
+        tl.to(this, { pixi: { scale: 1.05 }, yoyo: true, duration: 0.3, repeat: 1, ease: 'none' })
+        tl.to(this, {
+            pixi: { scaleX: 0 }, yoyo: true, duration: 0.3, repeat: 1, ease: 'none', onRepeat: () => {
+                if (this.fasingUp) {
+                    this.fasingUp = false;
+                    this.removeChildren();
+                    this.addBack();
+                } else {
+                    this.fasingUp = true;
+                    this.removeChildren();
+                    this.addChild(this.face);
 
+                }
             }
-        }}, '<')
+        }, '<')
     }
 }

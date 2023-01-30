@@ -55,7 +55,7 @@ function update(dt) {
 }
 
 async function loadGame() {
-    await PIXI.Assets.load<PIXI.BaseTexture>('assets/card-back.jpg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/card-back.jpeg');
     let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
 
     const cards = getCards(spreadsheet);
