@@ -1,11 +1,20 @@
 import { Connection } from "./Connection";
 import * as PIXI from "pixi.js";
-import { getSuit, Rank, SuitName } from "./util";
+import { getCards, getSuit, Rank, ICards, SuitName } from "./util";
+import { Deck } from "./Deck";
+
+import { gsap } from 'gsap';
+import { PixiPlugin } from 'gsap/PixiPlugin';
+import { Card } from "./Card";
+import { Piles } from "./Piles";
+
+gsap.registerPlugin(PixiPlugin);
+PixiPlugin.registerPIXI(PIXI);
 
 const app = new PIXI.Application({
-    width: 1200,
-    height: 720,
-    backgroundColor: 0x888888
+    width: 1225,
+    height: 840,
+    backgroundColor: 0x7eb300
 });
 
 const loadBar = new PIXI.Graphics();
@@ -27,8 +36,8 @@ export function engine(connection: Connection) {
     boardSection.appendChild(app.view as HTMLCanvasElement);
     app.ticker.add(update);
     loadGame()
-        .then((assets) => {
-            startGame(connection, assets)
+        .then((assets: ICards) => {
+            startGame(connection, assets);
         })
 
     connection.on('state', onState);
@@ -46,25 +55,45 @@ function update(dt) {
 }
 
 async function loadGame() {
-    //todo load background and card back
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/card-back.jpg');
     let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
-    const clubs = getSuit(spreadsheet, SuitName.clubs);
-    const hearts = getSuit(spreadsheet, SuitName.hearts);
-    const spades = getSuit(spreadsheet, SuitName.spades);
-    const diamonds = getSuit(spreadsheet, SuitName.diamonds);
+
+    const cards = getCards(spreadsheet);
 
     app.stage.removeChild(loadBar);
 
-    return [clubs, hearts, spades, diamonds];
+    return cards;
 }
 
-function startGame(connection: Connection, [clubs, hearts, spades, diamonds]: PIXI.Container[][]) {
-    clubs[Rank.ace].position.set(10, 10);
-    clubs[Rank._2].position.set(250, 10);
-    app.stage.addChild(clubs[Rank.ace], clubs[Rank._2]);
+function startGame(connection: Connection, cards: ICards) {
+    let piles = new Piles();
+    let deck = new Deck();
+    setTimeout(() => {
+        piles.reveal('1-1', cards.s[Rank._10]);
+        piles.reveal('2-2', cards.d[Rank.ace]);
+        piles.reveal('3-3', cards.s[Rank._4]);
+        piles.reveal('4-4', cards.d[Rank.jack]);
+        piles.reveal('5-5', cards.h[Rank._2]);
+        piles.reveal('6-6', cards.c[Rank.king]);
+        piles.reveal('7-7', cards.c[Rank._10]);
+    }, 5000)
 
-    hearts[Rank.ace].position.set(10, 100);
-    hearts[Rank._2].position.set(250, 100);
-    app.stage.addChild(hearts[Rank.ace], hearts[Rank._2]);
+    const pilesPositions = piles.getPositions;
 
+    console.log(pilesPositions)
+
+
+    app.stage.addChild(deck, piles)
+
+    // const card = new Card();
+
+    // card.addFace(cards.h[Rank.king]);
+    // setInterval(() => {
+    //     card.flip();
+
+    // }, 2000);
+
+    // card.position.set(400, 400);
+
+    // app.stage.addChild(card);
 }
