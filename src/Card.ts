@@ -75,9 +75,9 @@ export class Card extends PIXI.Container {
     public move(shuffledDeck, piles: Piles, deck?: Deck) {
         this.on('pointerdown', (e) => {
             //todo move pile of cards
+            this.moving = true;
             this.zIndex = 20;
             gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' })
-            this.moving = true;
 
         });
 
@@ -89,36 +89,31 @@ export class Card extends PIXI.Container {
 
         this.on('pointerup', (e) => {
             this.moving = false;
+            this.zIndex = 10;
+            let newPile = getPileByPos(e.globalX);
+
             if (piles.pack.includes(this)) {
                 let [col, row] = this.pilePos.split('-');
-
-                let newPile = getPileByPos(e.globalX);
                 piles.pilesState[+col - 1].splice(+row - 1, 1);
-                piles.pilesState[newPile].push(this);
-                this.pilePos = `${newPile + 1}-${piles.pilesState[newPile].length}`
-
-
-                this.zIndex = 10;
-                gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((piles.pilesState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' })
-
+               
                 let prevCard = piles.pilesState[+col - 1][+row - 2]
                 if ((+col != (newPile+1)) && prevCard && !prevCard.fasingUp) {
                     piles.reveal(`${col}-${+row - 1}`, shuffledDeck, shuffledDeck.pop())
                 }
             } else {
-                let newPile = getPileByPos(e.globalX);
                 deck.revealedPack.pop();
                 deck.removeChild(this);
 
-                piles.pilesState[newPile].push(this);
-                piles.pack.push(this)
-                piles.addChild(this)
-                this.pilePos = `${newPile + 1}-${piles.pilesState[newPile].length}`
+                piles.pack.push(this);
+                piles.addChild(this);
 
-
-                this.zIndex = 10;
-                gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((piles.pilesState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' })
             }
+
+            piles.pilesState[newPile].push(this);
+            this.pilePos = `${newPile + 1}-${piles.pilesState[newPile].length}`
+
+            gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((piles.pilesState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+
         });
 
     }
