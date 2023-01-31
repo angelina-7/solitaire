@@ -5,12 +5,29 @@ export interface ICardContainer extends PIXI.Container {
     rank: string;
 }
 
+export interface ICards {
+    'c': PIXI.Container[],
+    'h': PIXI.Container[],
+    's': PIXI.Container[],
+    'd': PIXI.Container[],
+}
+
 export enum SuitName {
     clubs, hearts, spades, diamonds
 }
 
 export enum Rank {
     ace, _2, _3, _4, _5, _6, _7, _8, _9, _10, jack, queen, king
+}
+
+
+export function getCards(sheet: PIXI.BaseTexture): ICards {
+    return {
+        'c': getSuit(sheet, SuitName.clubs),
+        'h': getSuit(sheet, SuitName.hearts),
+        's': getSuit(sheet, SuitName.spades),
+        'd': getSuit(sheet, SuitName.diamonds)
+    }
 }
 
 export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): Array<PIXI.Container> {
@@ -50,53 +67,25 @@ export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): Array<PIXI.Con
 
 }
 
-export interface ICards {
-    'c': PIXI.Container[],
-    'h': PIXI.Container[],
-    's': PIXI.Container[],
-    'd': PIXI.Container[],
-}
+export function getCardBack() {
+    const back = new PIXI.Container();
 
+    const mask = new PIXI.Graphics();
+    mask.beginFill(0xffffff);
+    mask.drawRoundedRect(0, 0, 120, 183, 12);
+    mask.endFill();
 
-export function getCards(sheet: PIXI.BaseTexture) {
-    const colors = ['c', 'h', 's', 'd'];
+    const cardBack = PIXI.Sprite.from('assets/card-back.jpeg');
+    cardBack.scale.set(0.2);
+    cardBack.mask = mask;
 
-    const result = {};
+    const border = new PIXI.Graphics();
+    border.lineStyle({ width: 2, color: 0x000000 });
+    border.drawRoundedRect(0, 0, 120, 183, 12);
 
-    result['c'] = new Array<PIXI.Container>();
-    result['h'] = new Array<PIXI.Container>();
-    result['s'] = new Array<PIXI.Container>();
-    result['d'] = new Array<PIXI.Container>();
+    back.addChild(cardBack, mask, border);
 
-    for (let i = 0; i < 13; i++) {
-        for (let color = 0; color < 4; color++) {
-
-            const container: ICardContainer = new PIXI.Container() as ICardContainer;
-            const mask = new PIXI.Graphics();
-            mask.beginFill(0xffffff);
-            mask.drawRoundedRect(0, 0, 404, 618, 34);
-            mask.endFill();
-
-            const border = new PIXI.Graphics();
-            border.lineStyle({ width: 4, color: 0x000000 });
-            border.drawRoundedRect(0, 0, 404, 617, 34);
-
-            const cardTexture = new PIXI.Texture(sheet, new PIXI.Rectangle(50 + (i * 458), 850 + (color * 660), 404, 618));
-            const card = PIXI.Sprite.from(cardTexture);
-            card.mask = mask;
-
-            container.addChild(card, mask, border);
-            container.pivot.set(204, 0)
-            container.scale.set(0.3);
-
-            container.suit = SuitName[color];
-            container.rank = Rank[i];
-
-            result[colors[color]].push(container);
-        }
-    }
-
-    return result;
+    return back;
 }
 
 export function getPilePosX(pile: number): number {
@@ -119,4 +108,26 @@ export function getPilePosX(pile: number): number {
     }
 
     return xpos;
+}
+
+export function getPileByPos(x: number): number {
+    let pile: number;
+
+    if (x <= 175) {
+        pile = 0;
+    } else if (x <= 350) {
+        pile = 1;
+    } else if (x <= 525) {
+        pile = 2;
+    } else if (x <= 700) {
+        pile = 3;
+    } else if (x <= 875) {
+        pile = 4;
+    } else if (x <= 1050) {
+        pile = 5;
+    } else {
+        pile = 6;
+    }
+
+    return pile;
 }

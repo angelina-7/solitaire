@@ -1,11 +1,10 @@
-import { Connection } from "./Connection";
 import * as PIXI from "pixi.js";
-import { getCards, getSuit, Rank, ICards, SuitName } from "./util";
-import { Deck } from "./Deck";
-
 import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
-import { Card } from "./Card";
+
+import { Connection } from "./Connection";
+import { getCards, ICards } from "./util";
+import { Deck } from "./Deck";
 import { Piles } from "./Piles";
 
 gsap.registerPlugin(PixiPlugin);
@@ -36,8 +35,8 @@ export function engine(connection: Connection) {
     boardSection.appendChild(app.view as HTMLCanvasElement);
     app.ticker.add(update);
     loadGame()
-        .then((assets: ICards) => {
-            startGame(connection, assets);
+        .then((cards: ICards) => {
+            startGame(connection, cards);
         })
 
     connection.on('state', onState);
@@ -95,12 +94,11 @@ function startGame(connection: Connection, cards: ICards) {
     }, 5000)
 
     const pilesPositions = piles.getPositions;
-
     console.log(pilesPositions)
-
 
     app.stage.addChild(deck, piles)
 
+    
     // const card = new Card();
 
     // card.addFace(cards.h[Rank.king]);

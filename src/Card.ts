@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
+import { getCardBack, getPileByPos, getPilePosX } from './util';
 
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
@@ -12,22 +13,25 @@ export class Card extends PIXI.Container {
     public draggable = false;
     public rank = null;
     public suit = null;
+    private moving = false;
     private _pilePos = null;
 
     constructor() {
         super();
 
+        this.back = getCardBack();
         this.addBack();
+
         this.pivot.set(this.width / 2, this.height / 2);
 
         this.interactive = true;
 
-        this.on('pointerdown', (e) => {
-            // if (this instanceof Card) {
-            //     e.stopPropagation();
-            // }
-            // console.log(this instanceof Piles)
-        })
+        // this.on('pointerdown', (e) => {
+        //     if (this instanceof Card) {
+        //         e.stopPropagation();
+        //     }
+        //     console.log(this instanceof Piles)
+        // })
     }
 
     get pilePos() {
@@ -39,21 +43,6 @@ export class Card extends PIXI.Container {
     }
 
     protected addBack() {
-        const cardBack = PIXI.Sprite.from('assets/card-back.jpeg');
-        cardBack.scale.set(0.2);
-
-        const mask = new PIXI.Graphics();
-        mask.beginFill(0xffffff);
-        mask.drawRoundedRect(0, 0, 120, 183, 12);
-        mask.endFill();
-
-        cardBack.mask = mask;
-
-        const border = new PIXI.Graphics();
-        border.lineStyle({ width: 2, color: 0x000000 });
-        border.drawRoundedRect(0, 0, 120, 183, 12);
-
-        this.back.addChild(cardBack, mask, border);
         this.addChild(this.back);
     }
 
@@ -79,5 +68,40 @@ export class Card extends PIXI.Container {
                 }
             }
         }, '<')
+    }
+
+    public move(pileState: Card[][]) {
+        this.on('pointerdown', (e) => {
+            //todo move pile of cards
+
+            this.zIndex = 20;
+            gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' })
+            this.moving = true;
+
+        });
+
+        this.on('pointermove', (e) => {
+            if (this.moving) {
+                this.position.set(e.globalX - 90, e.globalY - 40)
+            }
+        });
+
+        this.on('pointerup', (e) => {
+            this.moving = false;
+            let [col, row] = this.pilePos.split('-');
+
+            let newPile = getPileByPos(e.globalX);
+            pileState[+col - 1].splice(+row - 1, 1);
+            pileState[newPile].push(this);
+            this.pilePos = `${newPile + 1}-${pileState[newPile].length}`
+
+
+            this.zIndex = 10;
+            gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((pileState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' })
+
+            //todo reveal card under
+
+        });
+
     }
 }
