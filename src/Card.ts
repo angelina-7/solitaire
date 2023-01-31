@@ -9,6 +9,9 @@ export class Card extends PIXI.Container {
     public face = new PIXI.Container();
     public back = new PIXI.Container();
     public fasingUp = false;
+    public draggable = false;
+    public rank = null;
+    public suit = null;
     private _pilePos = null;
 
     constructor() {

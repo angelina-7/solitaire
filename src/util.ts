@@ -1,5 +1,10 @@
 import * as PIXI from "pixi.js";
 
+export interface ICardContainer extends PIXI.Container {
+    suit: string;
+    rank: string;
+}
+
 export enum SuitName {
     clubs, hearts, spades, diamonds
 }
@@ -66,7 +71,7 @@ export function getCards(sheet: PIXI.BaseTexture) {
     for (let i = 0; i < 13; i++) {
         for (let color = 0; color < 4; color++) {
 
-            const container = new PIXI.Container();
+            const container: ICardContainer = new PIXI.Container() as ICardContainer;
             const mask = new PIXI.Graphics();
             mask.beginFill(0xffffff);
             mask.drawRoundedRect(0, 0, 404, 618, 34);
@@ -83,6 +88,9 @@ export function getCards(sheet: PIXI.BaseTexture) {
             container.addChild(card, mask, border);
             container.pivot.set(204, 0)
             container.scale.set(0.3);
+
+            container.suit = SuitName[color];
+            container.rank = Rank[i];
 
             result[colors[color]].push(container);
         }
