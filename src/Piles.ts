@@ -6,9 +6,9 @@ import { Card } from './Card';
 
 export class Piles extends PIXI.Container {
     public pack: Card[] = [];
-    public pilesState = [];
+    private _pilesState = [];
 
-    constructor () {
+    constructor() {
         super();
 
         for (let i = 0; i < 28; i++) {
@@ -23,12 +23,12 @@ export class Piles extends PIXI.Container {
 
     }
 
-    get getPositions() {
-        return this.pilesState;
+    get pilesState() {
+        return this._pilesState;
     }
 
-    dealCards(){
-        const tl = gsap.timeline({delay: 0.5});
+    dealCards() {
+        const tl = gsap.timeline({ delay: 0.5 });
 
         let i = 0;
         for (let pile = 0; pile < 7; pile++) {
@@ -40,10 +40,10 @@ export class Piles extends PIXI.Container {
                     card.pilePos = `${pile + 1}-${n + 1}`;
                     card.interactive = true;
                     this.pilesState[pile].push(card);
-                    
-                    tl.to(card, {x: getPilePosX(pile), y: 200 + (n * 40), duration: 0.15});
+
+                    tl.to(card, { x: getPilePosX(pile), y: 200 + (n * 40), duration: 0.15 });
                     i++;
-                    
+
                     // card.on('pointerdown', () => {
                     //     console.log('from piles');
                     //     console.log(card.pilePos, card.suit, card.rank);
@@ -53,12 +53,12 @@ export class Piles extends PIXI.Container {
         }
     }
 
-    reveal(cardPos: string, face) {
+    reveal(cardPos: string, shuffledDeck, face) {
         let card = this.pack.find(x => x.pilePos == cardPos);
         card.suit = face.suit;
         card.rank = face.rank;
         card.addFace(face);
         card.flip();
-        card.move(this.pilesState);
+        card.move(shuffledDeck, this);
     }
 }

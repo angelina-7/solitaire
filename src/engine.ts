@@ -69,13 +69,14 @@ function startGame(connection: Connection, cards: ICards) {
     const shuffledDeck: any = startingDeck.sort((a, b) => 0.5 - Math.random());
 
     let piles = new Piles();
+
     let deck = new Deck();
     deck.on('pointerdown', () => {
         console.log(deck.moves)
         if (deck.moves < 24) {
-            deck.revealNext(shuffledDeck.pop());
+            deck.revealNext(piles, shuffledDeck, shuffledDeck.pop());
         } else {
-            deck.revealNext();
+            deck.revealNext(piles, shuffledDeck);
         }
 
         console.log('shuffled deck', shuffledDeck);
@@ -84,21 +85,19 @@ function startGame(connection: Connection, cards: ICards) {
     console.log(shuffledDeck);
 
     setTimeout(() => {
-        piles.reveal('1-1', shuffledDeck.pop());
-        piles.reveal('2-2', shuffledDeck.pop());
-        piles.reveal('3-3', shuffledDeck.pop());
-        piles.reveal('4-4', shuffledDeck.pop());
-        piles.reveal('5-5', shuffledDeck.pop());
-        piles.reveal('6-6', shuffledDeck.pop());
-        piles.reveal('7-7', shuffledDeck.pop());
+        piles.reveal('1-1', shuffledDeck, shuffledDeck.pop());
+        piles.reveal('2-2', shuffledDeck, shuffledDeck.pop());
+        piles.reveal('3-3', shuffledDeck, shuffledDeck.pop());
+        piles.reveal('4-4', shuffledDeck, shuffledDeck.pop());
+        piles.reveal('5-5', shuffledDeck, shuffledDeck.pop());
+        piles.reveal('6-6', shuffledDeck, shuffledDeck.pop());
+        piles.reveal('7-7', shuffledDeck, shuffledDeck.pop());
     }, 5000)
 
-    const pilesPositions = piles.getPositions;
-    console.log(pilesPositions)
 
-    app.stage.addChild(deck, piles)
+    app.stage.addChild(piles, deck)
 
-    
+
     // const card = new Card();
 
     // card.addFace(cards.h[Rank.king]);

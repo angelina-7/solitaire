@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import {gsap} from "gsap";
+import { gsap } from "gsap";
 import { Card } from "./Card";
 
 export class Deck extends PIXI.Container {
@@ -14,7 +14,7 @@ export class Deck extends PIXI.Container {
         for (let i = 0; i < 24; i++) {
             this.pack.push(new Card());
         }
-
+        this.sortableChildren = true;
         this.addChild(...this.pack);
 
         this.on('pointerdown', () => {
@@ -22,29 +22,32 @@ export class Deck extends PIXI.Container {
         });
     }
 
-    revealNext(face?) {
+    revealNext(piles, shuffledDeck, face?) {
         this.moves++;
-        if (this.moves <= 24) {
-            this.revealNextByAdding(face);
-        } else {
-            if (this.pack.length > 0) {
-                let card = this.pack.shift();
-                card.flip();
-                gsap.to(card, {x: 175});
-    
-                this.revealedPack.push(card);
+        let lastCard = this.revealedPack[this.revealedPack.length - 1];
+        if (!lastCard?.moving) {
+            if (this.moves <= 24) {
+                this.revealNextByAdding(piles, shuffledDeck, face);
             } else {
-                for (let i = 0; i < 24; i++) {
-                    let card = this.revealedPack.shift();
+                if (this.pack.length > 0) {
+                    let card = this.pack.shift();
                     card.flip();
-                    gsap.to(card, {x: 0, delay: 1});
-                    this.pack.push(card);
+                    gsap.to(card, { x: 175 });
+
+                    this.revealedPack.push(card);
+                } else {
+                    for (let i = 0; i < 24; i++) {
+                        let card = this.revealedPack.shift();
+                        card.flip();
+                        gsap.to(card, { x: 0, delay: 1 });
+                        this.pack.push(card);
+                    }
                 }
             }
         }
     }
 
-    revealNextByAdding(face) {
+    revealNextByAdding(piles, shuffledDeck, face) {
         console.log(face)
         if (this.pack.length > 0) {
             let card = this.pack.shift();
@@ -55,12 +58,13 @@ export class Deck extends PIXI.Container {
 
             card.addFace(face);
             card.flip();
-            gsap.to(card, {x: 175});
+            card.move(shuffledDeck, piles, this);
+            gsap.to(card, { x: 175 });
         } else {
             for (let i = 0; i < 24; i++) {
                 let card = this.revealedPack.shift();
                 card.flip();
-                gsap.to(card, {x: 0, delay: 1});
+                gsap.to(card, { x: 0, delay: 1 });
                 this.pack.push(card);
             }
         }
