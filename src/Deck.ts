@@ -36,10 +36,12 @@ export class Deck extends PIXI.Container {
 
                     this.revealedPack.push(card);
                 } else {
+                    const tl = gsap.timeline({defaults:  {duration: 0.05}});
+
                     for (let i = 0; i < 24; i++) {
                         let card = this.revealedPack.shift();
                         card.flip();
-                        gsap.to(card, { x: 0, delay: 1 });
+                        tl.to(card, {x: 0, ease: 'none'});
                         this.pack.push(card);
                     }
                 }
