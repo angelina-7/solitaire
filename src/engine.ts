@@ -71,7 +71,7 @@ function startGame(connection: Connection, cards: ICards) {
     let piles = new Piles();
 
     let deck = new Deck();
-    deck.on('pointerdown', () => {
+    deck.on('pointerup', () => {
         console.log(deck.moves)
         if (deck.moves < 24) {
             deck.revealNext(piles, shuffledDeck, shuffledDeck.pop());

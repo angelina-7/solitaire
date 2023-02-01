@@ -27,13 +27,6 @@ export class Card extends PIXI.Container {
         this.pivot.set(this.width / 2, this.height / 2);
 
         this.interactive = true;
-
-        // this.on('pointerdown', (e) => {
-        //     if (this instanceof Card) {
-        //         e.stopPropagation();
-        //     }
-        //     console.log(this instanceof Piles)
-        // })
     }
 
     get pilePos() {
@@ -73,49 +66,47 @@ export class Card extends PIXI.Container {
     }
 
     public move(shuffledDeck, piles: Piles, deck?: Deck) {
-        this.on('pointerdown', (e) => {
-            //todo move pile of cards
-            this.moving = true;
-            this.zIndex = 20;
-            gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
-            
-            console.log(this);
-        });
+            this.on('pointerdown', (e) => {
+                //todo move pile of cards
+                this.moving = true;
+                this.zIndex = 20;
+                gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
 
-        this.on('pointermove', (e) => {
-            if (this.moving) {
-                this.position.set(e.globalX - 90, e.globalY - 40)
-            }
-        });
+                console.log(this);
+            });
 
-        this.on('pointerup', (e) => {
-            this.moving = false;
-            this.zIndex = 10;
-            let newPile = getPileByPos(e.globalX);
-
-            if (piles.pack.includes(this)) {
-                let [col, row] = this.pilePos.split('-');
-                piles.pilesState[+col - 1].splice(+row - 1, 1);
-               
-                let prevCard = piles.pilesState[+col - 1][+row - 2]
-                if ((+col != (newPile+1)) && prevCard && !prevCard.fasingUp) {
-                    piles.reveal(`${col}-${+row - 1}`, shuffledDeck, shuffledDeck.pop())
+            this.on('pointermove', (e) => {
+                if (this.moving) {
+                    this.position.set(e.globalX - 90, e.globalY - 40)
                 }
-            } else {
-                deck.revealedPack.pop();
-                deck.removeChild(this);
+            });
 
-                piles.pack.push(this);
-                piles.addChild(this);
+            this.on('pointerup', (e) => {
+                this.moving = false;
+                this.zIndex = 10;
+                let newPile = getPileByPos(e.globalX);
 
-            }
+                if (piles.pack.includes(this)) {
+                    let [col, row] = this.pilePos.split('-');
+                    piles.pilesState[+col - 1].splice(+row - 1, 1);
+                
+                    let prevCard = piles.pilesState[+col - 1][+row - 2]
+                    if ((+col != (newPile+1)) && prevCard && !prevCard.fasingUp) {
+                        piles.reveal(`${col}-${+row - 1}`, shuffledDeck, shuffledDeck.pop())
+                    }
+                } else {
+                    deck.revealedPack.pop();
+                    deck.removeChild(this);
 
-            piles.pilesState[newPile].push(this);
-            this.pilePos = `${newPile + 1}-${piles.pilesState[newPile].length}`
+                    piles.pack.push(this);
+                    piles.addChild(this);
 
-            gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((piles.pilesState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                }
 
-        });
+                piles.pilesState[newPile].push(this);
+                this.pilePos = `${newPile + 1}-${piles.pilesState[newPile].length}`
 
+                gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((piles.pilesState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+            });
     }
 }
