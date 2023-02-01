@@ -1,6 +1,8 @@
 import * as PIXI from "pixi.js";
 import { gsap } from "gsap";
+
 import { Card } from "./Card";
+import { ICardContainer } from "./util";
 
 export class Deck extends PIXI.Container {
     public pack: Card[] = [];
@@ -25,55 +27,53 @@ export class Deck extends PIXI.Container {
         this.addChildAt(bt, 0);
         bt.interactive = true;
         bt.on('pointerup', () => {
-            const tl = gsap.timeline({defaults:  {duration: 0.05}});
+            const tl = gsap.timeline({ defaults: { duration: 0.05 } });
 
             for (let i = 0; i < 24; i++) {
                 let card = this.revealedPack.shift();
 
                 if (card) {
-                    console.log(card.eventNames())
-                    if(card.eventNames().length > 0) {
-                        card.removeAllListeners();
-                    }
-                    
+                    // console.log(card.eventNames())
+                    // if (card.eventNames().length > 0) {
+                    //     card.removeAllListeners();
+                    // }
+
                     card.flip();
-                    tl.to(card, {x: 0, ease: 'none'});
+                    tl.to(card, { x: 0, ease: 'none' });
                     this.pack.push(card);
                 }
             }
         });
     }
 
-    revealNext(piles, shuffledDeck, face?) {
+    revealNext(face?: ICardContainer) {
         let lastCard = this.revealedPack[this.revealedPack.length - 1];
 
         if (!lastCard?.moving) {
             if (this.moves < 24) {
-                this.revealNextByAdding(piles, shuffledDeck, face);
+                this.revealNextByAdding(face);
             } else {
                 if (this.pack.length > 0) {
                     let card = this.pack.shift();
-                    card.move(shuffledDeck, piles, this);
                     card.flip();
                     gsap.to(card, { x: 175 });
 
                     this.revealedPack.push(card);
-                } 
+                }
             }
         }
     }
 
-    revealNextByAdding(piles, shuffledDeck, face) {
-            this.moves++;
-            let card = this.pack.shift();
-            card.suit = face.suit;
-            card.rank = face.rank;
+    revealNextByAdding(face: ICardContainer) {
+        this.moves++;
+        let card = this.pack.shift();
+        card.suit = face.suit;
+        card.rank = face.rank;
 
-            this.revealedPack.push(card);
+        this.revealedPack.push(card);
 
-            card.addFace(face);
-            card.flip();
-            card.move(shuffledDeck, piles, this);
-            gsap.to(card, { x: 175 });
+        card.addFace(face);
+        card.flip();
+        gsap.to(card, { x: 175 });
     }
 }

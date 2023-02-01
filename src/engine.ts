@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
 
 import { Connection } from "./Connection";
-import { getCards, ICards } from "./util";
+import { getCards, ICardContainer, ICards } from "./util";
 import { Deck } from "./Deck";
 import { Piles } from "./Piles";
 
@@ -66,47 +66,67 @@ async function loadGame() {
 
 function startGame(connection: Connection, cards: ICards) {
     let startingDeck = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-    const shuffledDeck: any = startingDeck.sort((a, b) => 0.5 - Math.random());
+    console.log(startingDeck);
+
+    const shuffledDeck = startingDeck.sort((a, b) => 0.5 - Math.random());
 
     let piles = new Piles();
-
     let deck = new Deck();
-    deck.on('pointerup', () => {
-        console.log(deck.moves)
-        if (deck.moves < 24) {
-            deck.revealNext(piles, shuffledDeck, shuffledDeck.pop());
-        } else {
-            deck.revealNext(piles, shuffledDeck);
-        }
-
-        console.log('shuffled deck', shuffledDeck);
-    })
-
-    console.log(shuffledDeck);
 
     setTimeout(() => {
-        piles.reveal('1-1', shuffledDeck, shuffledDeck.pop());
-        piles.reveal('2-2', shuffledDeck, shuffledDeck.pop());
-        piles.reveal('3-3', shuffledDeck, shuffledDeck.pop());
-        piles.reveal('4-4', shuffledDeck, shuffledDeck.pop());
-        piles.reveal('5-5', shuffledDeck, shuffledDeck.pop());
-        piles.reveal('6-6', shuffledDeck, shuffledDeck.pop());
-        piles.reveal('7-7', shuffledDeck, shuffledDeck.pop());
-    }, 5000)
+        piles.reveal('0-0', shuffledDeck.pop());
+        piles.reveal('1-1', shuffledDeck.pop());
+        piles.reveal('2-2', shuffledDeck.pop());
+        piles.reveal('3-3', shuffledDeck.pop());
+        piles.reveal('4-4', shuffledDeck.pop());
+        piles.reveal('5-5', shuffledDeck.pop());
+        piles.reveal('6-6', shuffledDeck.pop());
+    }, 5000);
 
+    userInteractions(piles, deck, shuffledDeck);
 
-    app.stage.addChild(piles, deck)
+    app.stage.addChild(piles, deck);
 
+}
 
-    // const card = new Card();
+function userInteractions(piles: Piles, deck: Deck, shuffledDeck: ICardContainer[]) {
+    deck.on('pointerdown', () => {
+        // console.log(deck.moves)
+        if (deck.moves < 24) {
+            deck.revealNext(shuffledDeck.pop());
+        } else {
+            deck.revealNext();
+        }
 
-    // card.addFace(cards.h[Rank.king]);
-    // setInterval(() => {
-    //     card.flip();
+    });
 
-    // }, 2000);
+    const allCards = [...piles.pack, ...deck.pack];
 
-    // card.position.set(400, 400);
+    //all cards have listeners but triggered only when fasing up
+    allCards.forEach(c => {
+        let selectedCards;
+        c.on('pointerdown', (e) => {
+            selectedCards = c.select(piles, deck, e.globalX, e.globalY);
+        });
 
-    // app.stage.addChild(card);
+        c.on('pointermove', (e) => {
+            if (selectedCards) {
+                c.move(e.globalX, e.globalY, selectedCards);
+            }
+            else {
+                c.move(e.globalX, e.globalY);
+            }
+
+        });
+
+        c.on('pointerup', (e) => {
+            if (selectedCards) {
+                c.place(piles, deck, shuffledDeck, e.globalX, e.globalY, selectedCards);
+            } else {
+                c.place(piles, deck, shuffledDeck, e.globalX, e.globalY);
+            }
+        });
+
+    })
+
 }

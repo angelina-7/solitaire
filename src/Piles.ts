@@ -23,7 +23,7 @@ export class Piles extends PIXI.Container {
 
     }
 
-    get pilesState() {
+    get pilesState(): Card[][] {
         return this._pilesState;
     }
 
@@ -37,7 +37,7 @@ export class Piles extends PIXI.Container {
             for (let n = 0; n < 7; n++) {
                 if (n <= pile) {
                     let card = this.pack[i];
-                    card.pilePos = `${pile + 1}-${n + 1}`;
+                    card.pilePos = `${pile}-${n}`;
                     card.interactive = true;
                     this.pilesState[pile].push(card);
 
@@ -53,12 +53,11 @@ export class Piles extends PIXI.Container {
         }
     }
 
-    reveal(cardPos: string, shuffledDeck, face) {
+    reveal(cardPos: string, face) {
         let card = this.pack.find(x => x.pilePos == cardPos);
         card.suit = face.suit;
         card.rank = face.rank;
         card.addFace(face);
         card.flip();
-        card.move(shuffledDeck, this);
     }
 }

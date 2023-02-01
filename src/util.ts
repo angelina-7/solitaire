@@ -1,15 +1,15 @@
 import * as PIXI from "pixi.js";
 
 export interface ICardContainer extends PIXI.Container {
-    suit: string;
-    rank: string;
+    suit: SuitName;
+    rank: Rank;
 }
 
 export interface ICards {
-    'c': PIXI.Container[],
-    'h': PIXI.Container[],
-    's': PIXI.Container[],
-    'd': PIXI.Container[],
+    'c': ICardContainer[],
+    'h': ICardContainer[],
+    's': ICardContainer[],
+    'd': ICardContainer[],
 }
 
 export enum SuitName {
@@ -30,13 +30,8 @@ export function getCards(sheet: PIXI.BaseTexture): ICards {
     }
 }
 
-export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): Array<PIXI.Container> {
-    const result = new Array<PIXI.Container>();
-    console.log(name)
-    const resultObj = {};
-    window['resultObj'] = resultObj
-
-    resultObj[name] = new Array<PIXI.Container>();
+export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): ICardContainer[] {
+    const result = new Array<ICardContainer>();
 
     for (let i = 0; i < 13; i++) {
         const container: ICardContainer = new PIXI.Container() as ICardContainer;
@@ -45,8 +40,8 @@ export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): Array<PIXI.Con
         mask.drawRoundedRect(0, 0, 404, 618, 34);
         mask.endFill();
 
-        container.suit = SuitName[name]
-        container.rank = Rank[i];
+        container.suit = name
+        container.rank = i;
 
         const border = new PIXI.Graphics();
         border.lineStyle({ width: 2, color: 0x000000 });
@@ -62,10 +57,8 @@ export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): Array<PIXI.Con
         container.scale.set(0.3);
 
         result.push(container);
-        resultObj[name].push(container);
     }
 
-    console.log('result', resultObj)
     return result;
 
 }
@@ -98,7 +91,7 @@ export function getPilePosX(pile: number): number {
         xpos = 0;
     } else if (pile == 1) {
         xpos = 175;
-    } else if (pile == 2){
+    } else if (pile == 2) {
         xpos = 350;
     } else if (pile == 3) {
         xpos = 525;
