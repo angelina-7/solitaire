@@ -77,8 +77,9 @@ export class Card extends PIXI.Container {
             //todo move pile of cards
             this.moving = true;
             this.zIndex = 20;
-            gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' })
-
+            gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
+            
+            console.log(this);
         });
 
         this.on('pointermove', (e) => {

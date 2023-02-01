@@ -17,6 +17,14 @@ export class Deck extends PIXI.Container {
         this.sortableChildren = true;
         this.addChild(...this.pack);
 
+        let bt = new PIXI.Graphics();
+        bt.beginFill(0xffffff);
+        bt.drawRoundedRect(-25, -25, 50, 50, 10);
+        bt.endFill();
+
+        // this.addChild(bt)
+        this.addChildAt(bt, 0)
+
         this.on('pointerdown', () => {
             console.log('from deck');
         });
@@ -25,6 +33,7 @@ export class Deck extends PIXI.Container {
     revealNext(piles, shuffledDeck, face?) {
         this.moves++;
         let lastCard = this.revealedPack[this.revealedPack.length - 1];
+        console.log(lastCard)
         if (!lastCard?.moving) {
             if (this.moves <= 24) {
                 this.revealNextByAdding(piles, shuffledDeck, face);
@@ -37,6 +46,8 @@ export class Deck extends PIXI.Container {
                     this.revealedPack.push(card);
                 } else {
                     const tl = gsap.timeline({defaults:  {duration: 0.05}});
+
+                    console.log('')
 
                     for (let i = 0; i < 24; i++) {
                         let card = this.revealedPack.shift();

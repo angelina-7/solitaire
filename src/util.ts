@@ -39,11 +39,14 @@ export function getSuit(sheet: PIXI.BaseTexture, name: SuitName): Array<PIXI.Con
     resultObj[name] = new Array<PIXI.Container>();
 
     for (let i = 0; i < 13; i++) {
-        const container = new PIXI.Container();
+        const container: ICardContainer = new PIXI.Container() as ICardContainer;
         const mask = new PIXI.Graphics();
         mask.beginFill(0xffffff);
         mask.drawRoundedRect(0, 0, 404, 618, 34);
         mask.endFill();
+
+        container.suit = SuitName[name]
+        container.rank = Rank[i];
 
         const border = new PIXI.Graphics();
         border.lineStyle({ width: 2, color: 0x000000 });
