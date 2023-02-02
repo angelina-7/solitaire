@@ -1,4 +1,9 @@
 import * as PIXI from "pixi.js";
+import { gsap } from 'gsap';
+import { PixiPlugin } from 'gsap/PixiPlugin';
+
+gsap.registerPlugin(PixiPlugin);
+PixiPlugin.registerPIXI(PIXI);
 
 export interface ICardContainer extends PIXI.Container {
     suit: SuitName;
@@ -116,23 +121,18 @@ export function getPilePosX(pile: number): number {
 }
 
 export function getPileByPos(x: number, y: number, currPile?): number | string {
-    // console.log(x, y)
     let pile: number;
 
     if (y < 210) {
         if (x < 450) {
             return 'deal';
         } else if (x < 700) {
-            console.log('clubs foundation');
             return 'clubs';
         } else if (x < 875) {
-            console.log('hearts foundation');
             return 'hearts';
         } else if (x < 1050) {
-            console.log('spades foundation');
             return 'spades';
         } else {
-            console.log('diamonds foundation');
             return 'diamonds';
         }
 
@@ -157,7 +157,32 @@ export function getPileByPos(x: number, y: number, currPile?): number | string {
         }
     }
 
-    // console.log(pile)
-
     return pile;
+}
+
+function particle(color: number, parent: PIXI.Container) {
+    const sq = new PIXI.Graphics();
+    sq.beginFill(0xffffff);
+    sq.drawRect(0, 0, 6, 6);
+    sq.endFill();
+    sq.pivot.set(3, 3);
+
+    gsap.fromTo(sq, {pixi: {scale: 0}}, {pixi: {x: 'random(-100, 100)', y: 'random(-100, 100)', rotation: 1440, scale: 3, blur: 1}, duration: 2});
+    gsap.to(sq, {pixi: {tint: color}, duration: 1});
+    gsap.to(sq, {pixi: {tint: 0}, duration: 1, delay: 1});
+
+    parent.addChild(sq);
+}
+
+export function firework(x: number, y: number, color: number) {
+    const container = new PIXI.Container();
+    container.position.set(x, y);
+
+    for (let i = 0; i < 50; i++) {
+        particle(color, container);
+    }
+
+    gsap.to(container, {pixi: {y: y + 100}, duration: 2, ease: 'power2.in', onComplete: () => {container.destroy()} });
+
+    return container;
 }

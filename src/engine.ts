@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
 
 import { Connection } from "./Connection";
-import { getCards, ICardContainer, ICards } from "./util";
+import { firework, getCards, ICardContainer, ICards } from "./util";
 import { Deck } from "./Deck";
 import { Piles } from "./Piles";
 import { Foundations } from "./Foundations";
@@ -73,7 +73,6 @@ async function loadGame() {
 function startGame(connection: Connection, cards: ICards) {
     const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
     let startingDeck = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-    // console.log(startingDeck);
 
     const shuffledDeck = startingDeck.sort((a, b) => 0.5 - Math.random());
 
@@ -100,8 +99,6 @@ function startGame(connection: Connection, cards: ICards) {
 
 function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[]) {
     deck.on('pointerdown', (e) => {
-        // console.log(deck.moves)
-        // console.log(e.x, e.y)
         if (e.x >= 10 && e.x <= 156 && e.y >= 10 && e.y <= 298) {
             if (deck.moves < 24) {
                 deck.revealNext(shuffledDeck.pop());
@@ -137,6 +134,13 @@ function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, sh
                 c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY);
             }
             selectedCards = null;
+
+            if ((deck.pack.length + deck.revealedPack.length + piles.pack.length) == 0) {
+                for (let i = 0; i < 25; i++) {
+                    const sparkles = firework(150 + Math.random() * 900, 100 + Math.random() * 640, ((Math.random() * 256 | 0) << 16) + ((Math.random() * 256 | 0) << 8) + (Math.random() * 256 | 0));
+                    app.stage.addChild(sparkles);
+                }
+            }
         });
 
     })

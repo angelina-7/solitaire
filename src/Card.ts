@@ -250,6 +250,8 @@ export class Card extends PIXI.Container {
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
                     piles.removeChild(this);
+                    let cardToRemoveIndex = piles.pack.findIndex(x => x == this);
+                    piles.pack.splice(cardToRemoveIndex, 1)
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
@@ -276,6 +278,8 @@ export class Card extends PIXI.Container {
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
                     piles.removeChild(this);
+                    let cardToRemoveIndex = piles.pack.findIndex(x => x == this);
+                    piles.pack.splice(cardToRemoveIndex, 1)
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
@@ -302,6 +306,8 @@ export class Card extends PIXI.Container {
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
                     piles.removeChild(this);
+                    let cardToRemoveIndex = piles.pack.findIndex(x => x == this);
+                    piles.pack.splice(cardToRemoveIndex, 1)
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
@@ -328,6 +334,8 @@ export class Card extends PIXI.Container {
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
                     piles.removeChild(this);
+                    let cardToRemoveIndex = piles.pack.findIndex(x => x == this);
+                    piles.pack.splice(cardToRemoveIndex, 1)
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
