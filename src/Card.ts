@@ -246,7 +246,6 @@ export class Card extends PIXI.Container {
                 clubsF.shift();
                 this.zIndex = -10;
                 this.pilePos = 'foundation';
-                // tilePosition: -spadesF.length
                 gsap.to(this, { pixi: { x: 525, y: 0, scale: 1, zIndex: -clubsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
 
                 if (col != -1) {

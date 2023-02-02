@@ -135,6 +135,7 @@ function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, sh
             } else {
                 c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY);
             }
+            selectedCards = null;
         });
 
     })
