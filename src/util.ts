@@ -5,6 +5,10 @@ export interface ICardContainer extends PIXI.Container {
     rank: Rank;
 }
 
+export interface IFoundationContainer extends PIXI.Container {
+    color: string;
+}
+
 export interface ICards {
     'c': ICardContainer[],
     'h': ICardContainer[],
@@ -19,6 +23,11 @@ export enum SuitName {
 export enum Rank {
     ace, _2, _3, _4, _5, _6, _7, _8, _9, _10, jack, queen, king
 }
+
+export const spadesF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
+export const heartsF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
+export const clubsF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
+export const diamondsF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
 
 
 export function getCards(sheet: PIXI.BaseTexture): ICards {
@@ -106,24 +115,49 @@ export function getPilePosX(pile: number): number {
     return xpos;
 }
 
-export function getPileByPos(x: number): number {
+export function getPileByPos(x: number, y: number, currPile?): number | string {
+    // console.log(x, y)
     let pile: number;
 
-    if (x <= 175) {
-        pile = 0;
-    } else if (x <= 350) {
-        pile = 1;
-    } else if (x <= 525) {
-        pile = 2;
-    } else if (x <= 700) {
-        pile = 3;
-    } else if (x <= 875) {
-        pile = 4;
-    } else if (x <= 1050) {
-        pile = 5;
+    if (y < 210) {
+        if (x < 450) {
+            return 'deal';
+        } else if (x < 700) {
+            console.log('clubs foundation');
+            return 'clubs';
+        } else if (x < 875) {
+            console.log('hearts foundation');
+            return 'hearts';
+        } else if (x < 1050) {
+            console.log('spades foundation');
+            return 'spades';
+        } else {
+            console.log('diamonds foundation');
+            return 'diamonds';
+        }
+
     } else {
-        pile = 6;
+
+        if (x <= 175 && y >= 210) {        
+            pile = 0;
+        } else if (x <= 350 && y >= 210) { 
+            pile = 1;
+        } else if (x <= 525 && y >= 210) { 
+            pile = 2;
+        } else if (x <= 700 && y >= 210) { 
+            pile = 3;
+        } else if (x <= 875 && y >= 210) { 
+            pile = 4;
+        } else if (x <= 1050 && y >= 210) {
+            pile = 5;
+        } else if (x <= 1250 && y >= 210) {
+            pile = 6;
+        } else {
+            pile = currPile;
+        }
     }
+
+    // console.log(pile)
 
     return pile;
 }

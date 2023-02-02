@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
 
-import { getCardBack, getPileByPos, getPilePosX, ICardContainer, Rank, SuitName } from './util';
+import { clubsF, diamondsF, heartsF, spadesF, getCardBack, getPileByPos, getPilePosX, ICardContainer, Rank, SuitName } from './util';
 import { Piles } from './Piles';
 import { Deck } from './Deck';
 import { canPlaceCard } from './rules';
@@ -13,11 +13,11 @@ PixiPlugin.registerPIXI(PIXI);
 export class Card extends PIXI.Container {
     public face = new PIXI.Container();
     public back = new PIXI.Container();
+    public fasingUp = false;
     public rank: Rank;
     public suit: SuitName;
     public moving = false;
-    private fasingUp = false;
-    private _pilePos = null;
+    private _pilePos = '';
 
     constructor() {
         super();
@@ -112,19 +112,21 @@ export class Card extends PIXI.Container {
         if (this.moving) {
             let initX = 175;
             let initY = 0;
+            let currPile: any = this.pilePos;
+            let newPile = getPileByPos(x, y);
 
-            if (y > 200) {
-                let newPile = getPileByPos(x);
+            //initail x, y position of card to return back, if user tries to place it agains the rules
+            let [col, row] = [-1, -1];
+            if (piles.pack.includes(this)) {
+                [col, row] = this.pilePos.split('-').map(x => Number(x));
+                currPile = col;
+                initX = getPilePosX(col);
+                initY = 200 + ((row) * 40);
+            }
+
+            if (typeof newPile == 'number') {
                 let newPileLI = piles.pilesState[newPile].length - 1;
                 let newPosLastCard = piles.pilesState[newPile][newPileLI];
-
-                //initail x, y position of card to return back, if user tries to place it agains the rules
-                let [col, row] = [-1, -1];
-                if (piles.pack.includes(this)) {
-                    [col, row] = this.pilePos.split('-').map(x => Number(x));
-                    initX = getPilePosX(col);
-                    initY = 200 + ((row) * 40);
-                }
 
                 if (newPosLastCard) {
                     if (col != -1) {
@@ -146,8 +148,8 @@ export class Card extends PIXI.Container {
             } else if (y <= 200 && x <= 350 && deck.revealedPack.includes(this)) {
                 //return back to deck if user decides to drop it back
                 gsap.to(this, { pixi: { x: initX, y: initY, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
-            } else if (y <= 200 && x > 350) {
-                //todo place to foundation
+            } else if (typeof newPile == 'string') {
+                this.placeCardToFoundation(newPile, piles, deck, currPile, col, row, shuffledDeck);
             }
             this.moving = false;
         }
@@ -237,7 +239,107 @@ export class Card extends PIXI.Container {
         }
     }
 
-    placeCardToFoundation() {
+    placeCardToFoundation(newPile: string, piles: Piles, deck: Deck, currPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
+        if (newPile == 'clubs') {
+            if (this.suit == SuitName.clubs && this.rank == clubsF[0]) {
+                clubsF.shift();
+                this.zIndex = -10;
+                this.pilePos = 'foundation';
+                // tilePosition: -spadesF.length
+                gsap.to(this, { pixi: { x: 525, y: 0, scale: 1, zIndex: -clubsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+
+                if (col != -1) {
+                    piles.pilesState[col].splice(row, 1);
+                    let prevCard = piles.pilesState[col][row - 1];
+                    if (prevCard && !prevCard.fasingUp) {
+                        piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
+                    }
+                } else {
+                    deck.revealedPack.pop();
+                    deck.removeChild(this);
+                }
+            } else {
+                if (this.pilePos == 'deal') {
+                    gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                } else {
+                    gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                }
+            }
+        } else if (newPile == 'hearts') {
+            if (this.suit == SuitName.hearts && this.rank == heartsF[0]) {
+                heartsF.shift();
+                this.zIndex = -10;
+                this.pilePos = 'foundation';
+                gsap.to(this, { pixi: { x: 700, y: 0, scale: 1, zIndex: -heartsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+
+                if (col != -1) {
+                    piles.pilesState[col].splice(row, 1);
+                    let prevCard = piles.pilesState[col][row - 1];
+                    if (prevCard && !prevCard.fasingUp) {
+                        piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
+                    }
+                } else {
+                    deck.revealedPack.pop();
+                    deck.removeChild(this);
+                }
+            } else {
+                if (this.pilePos == 'deal') {
+                    gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                } else {
+                    gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                }
+            }
+        } else if (newPile == 'spades') {
+            if (this.suit == SuitName.spades && this.rank == spadesF[0]) {
+                spadesF.shift();
+                this.zIndex = -10;
+                this.pilePos = 'foundation';
+                gsap.to(this, { pixi: { x: 875, y: 0, scale: 1, zIndex: -spadesF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+
+                if (col != -1) {
+                    piles.pilesState[col].splice(row, 1);
+                    let prevCard = piles.pilesState[col][row - 1];
+                    if (prevCard && !prevCard.fasingUp) {
+                        piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
+                    }
+                } else {
+                    deck.revealedPack.pop();
+                    deck.removeChild(this);
+                }
+            } else {
+                if (this.pilePos == 'deal') {
+                    gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                } else {
+                    gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                }
+            }
+        } else if (newPile == 'diamonds') {
+            if (this.suit == SuitName.diamonds && this.rank == diamondsF[0]) {
+                diamondsF.shift();
+                this.zIndex = -10;
+                this.pilePos = 'foundation';
+                gsap.to(this, { pixi: { x: 1050, y: 0, scale: 1, zIndex: -diamondsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+
+                if (col != -1) {
+                    piles.pilesState[col].splice(row, 1);
+                    let prevCard = piles.pilesState[col][row - 1];
+                    if (prevCard && !prevCard.fasingUp) {
+                        piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
+                    }
+                } else {
+                    deck.revealedPack.pop();
+                    deck.removeChild(this);
+                }
+            } else {
+                if (this.pilePos == 'deal') {
+                    gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                } else {
+                    gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                }
+            }
+
+        }
+
 
     }
 }

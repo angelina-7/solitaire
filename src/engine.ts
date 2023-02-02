@@ -6,6 +6,7 @@ import { Connection } from "./Connection";
 import { getCards, ICardContainer, ICards } from "./util";
 import { Deck } from "./Deck";
 import { Piles } from "./Piles";
+import { Foundations } from "./Foundations";
 
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
@@ -55,6 +56,10 @@ function update(dt) {
 
 async function loadGame() {
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/card-back.jpeg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/clubs.svg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/diamonds.svg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/hearts.svg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/spades.svg');
     let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
 
     const cards = getCards(spreadsheet);
@@ -65,13 +70,15 @@ async function loadGame() {
 }
 
 function startGame(connection: Connection, cards: ICards) {
+    const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
     let startingDeck = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-    console.log(startingDeck);
+    // console.log(startingDeck);
 
     const shuffledDeck = startingDeck.sort((a, b) => 0.5 - Math.random());
 
     let piles = new Piles();
     let deck = new Deck();
+    let foundations = new Foundations(foundationsInfo);
 
     setTimeout(() => {
         piles.reveal('0-0', shuffledDeck.pop());
@@ -85,19 +92,22 @@ function startGame(connection: Connection, cards: ICards) {
 
     userInteractions(piles, deck, shuffledDeck);
 
-    app.stage.addChild(piles, deck);
+    app.stage.addChild(foundations, piles, deck);
+
 
 }
 
 function userInteractions(piles: Piles, deck: Deck, shuffledDeck: ICardContainer[]) {
-    deck.on('pointerdown', () => {
+    deck.on('pointerdown', (e) => {
         // console.log(deck.moves)
-        if (deck.moves < 24) {
-            deck.revealNext(shuffledDeck.pop());
-        } else {
-            deck.revealNext();
+        // console.log(e.x, e.y)
+        if (e.x >= 10 && e.x <= 156 && e.y >= 10 && e.y <= 298) {
+            if (deck.moves < 24) {
+                deck.revealNext(shuffledDeck.pop());
+            } else {
+                deck.revealNext();
+            }
         }
-
     });
 
     const allCards = [...piles.pack, ...deck.pack];
