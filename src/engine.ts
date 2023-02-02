@@ -6,6 +6,7 @@ import { Connection } from "./Connection";
 import { getCards, ICards } from "./util";
 import { Deck } from "./Deck";
 import { Piles } from "./Piles";
+import { Foundations } from "./Foundations";
 
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
@@ -55,6 +56,10 @@ function update(dt) {
 
 async function loadGame() {
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/card-back.jpeg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/clubs.svg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/diamonds.svg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/hearts.svg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/spades.svg');
     let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
 
     const cards = getCards(spreadsheet);
@@ -65,18 +70,24 @@ async function loadGame() {
 }
 
 function startGame(connection: Connection, cards: ICards) {
+    const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
     let startingDeck = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
     const shuffledDeck: any = startingDeck.sort((a, b) => 0.5 - Math.random());
 
     let piles = new Piles();
-
     let deck = new Deck();
-    deck.on('pointerup', () => {
+    let foundations = new Foundations(foundationsInfo);
+
+    deck.on('pointerup', (e) => {
         console.log(deck.moves)
-        if (deck.moves < 24) {
-            deck.revealNext(piles, shuffledDeck, shuffledDeck.pop());
-        } else {
-            deck.revealNext(piles, shuffledDeck);
+        console.log(e.x, e.y)
+        if (e.x >= 10 && e.x <= 156 && e.y >= 10 && e.y <= 298) {
+
+            if (deck.moves < 24) {
+                deck.revealNext(piles, shuffledDeck, shuffledDeck.pop());
+            } else {
+                deck.revealNext(piles, shuffledDeck);
+            }
         }
 
         console.log('shuffled deck', shuffledDeck);
@@ -94,19 +105,5 @@ function startGame(connection: Connection, cards: ICards) {
         piles.reveal('7-7', shuffledDeck, shuffledDeck.pop());
     }, 5000)
 
-
-    app.stage.addChild(piles, deck)
-
-
-    // const card = new Card();
-
-    // card.addFace(cards.h[Rank.king]);
-    // setInterval(() => {
-    //     card.flip();
-
-    // }, 2000);
-
-    // card.position.set(400, 400);
-
-    // app.stage.addChild(card);
+    app.stage.addChild(foundations, piles, deck);
 }

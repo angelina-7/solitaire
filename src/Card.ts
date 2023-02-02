@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
-import { getCardBack, getPileByPos, getPilePosX } from './util';
+import { clubsF, diamondsF, getCardBack, getPileByPos, getPilePosX, heartsF, spadesF } from './util';
 import { Piles } from './Piles';
 import { Deck } from './Deck';
 
@@ -16,7 +16,7 @@ export class Card extends PIXI.Container {
     public rank = null;
     public suit = null;
     public moving = false;
-    private _pilePos = null;
+    private _pilePos = '';
 
     constructor() {
         super();
@@ -68,11 +68,10 @@ export class Card extends PIXI.Container {
     public move(shuffledDeck, piles: Piles, deck?: Deck) {
             this.on('pointerdown', (e) => {
                 //todo move pile of cards
-                this.moving = true;
-                this.zIndex = 20;
-                gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
-
                 console.log(this);
+                this.moving = true;
+                this.zIndex = 50;
+                gsap.to(this, { pixi: { x: e.globalX - 90, y: e.globalY - 40, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
             });
 
             this.on('pointermove', (e) => {
@@ -84,29 +83,99 @@ export class Card extends PIXI.Container {
             this.on('pointerup', (e) => {
                 this.moving = false;
                 this.zIndex = 10;
-                let newPile = getPileByPos(e.globalX);
 
-                if (piles.pack.includes(this)) {
-                    let [col, row] = this.pilePos.split('-');
-                    piles.pilesState[+col - 1].splice(+row - 1, 1);
-                
-                    let prevCard = piles.pilesState[+col - 1][+row - 2]
-                    if ((+col != (newPile+1)) && prevCard && !prevCard.fasingUp) {
-                        piles.reveal(`${col}-${+row - 1}`, shuffledDeck, shuffledDeck.pop())
-                    }
+                let currPile = Number(this.pilePos.split('-')[0]) - 1; //
+                console.log('currPile', currPile)
+
+                let newPile;
+
+                if (currPile) {
+                    newPile = getPileByPos(e.globalX, e.globalY, currPile); //
                 } else {
-                    deck.revealedPack.pop();
-                    deck.removeChild(this);
-
-                    piles.pack.push(this);
-                    piles.addChild(this);
-
+                    newPile = getPileByPos(e.globalX, e.globalY); //
                 }
+                console.log('newPile', newPile);
 
-                piles.pilesState[newPile].push(this);
-                this.pilePos = `${newPile + 1}-${piles.pilesState[newPile].length}`
+                if (newPile == 'clubs') {
+                    if (this.suit == 'clubs' && this.rank == clubsF[0]) {
+                        clubsF.shift();
+                        this.zIndex = -10;
+                        this.pilePos = 'foundation';
+                        gsap.to(this, { pixi: { x: 525, y: 0, scale: 1, zIndex: -spadesF.length, tilePosition: -spadesF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                    } else {
+                        if (this.pilePos == 'deal') {
+                            gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        } else {
+                            gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        }
+                    }
+                } else if (newPile == 'hearts') {
+                    if (this.suit == 'hearts' && this.rank == heartsF[0]) {
+                        heartsF.shift();
+                        this.zIndex = -10;
+                        this.pilePos = 'foundation';
+                        gsap.to(this, { pixi: { x: 700, y: 0, scale: 1, zIndex: -spadesF.length, tilePosition: -spadesF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                    } else {
+                        if (this.pilePos == 'deal') {
+                            gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        } else {
+                            gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        }
+                    }
+                } else if (newPile == 'spades') {
+                    if (this.suit == 'spades' && this.rank == spadesF[0]) {
+                        spadesF.shift();
+                        this.zIndex = -10;
+                        this.pilePos = 'foundation';
+                        gsap.to(this, { pixi: { x: 875, y: 0, scale: 1, tilePosition: -spadesF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                    } else {
+                        if (this.pilePos == 'deal') {
+                            gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        } else {
+                            
+                            gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        }
+                    }
 
-                gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((piles.pilesState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                } else if (newPile == 'diamonds') {
+
+                    if (this.suit == 'diamonds' && this.rank == diamondsF[0]) {
+                        diamondsF.shift();
+                        this.zIndex = -10;
+                        this.pilePos = 'foundation';
+                        gsap.to(this, { pixi: { x: 1050, y: 0, scale: 1, zIndex: -spadesF.length, tilePosition: -spadesF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                    } else {
+                        if (this.pilePos == 'deal') {
+                            gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        } else {
+                            gsap.to(this, { pixi: { x: getPilePosX(currPile), y: 200 + ((piles.pilesState[currPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                        }
+                    }
+
+                } else if (newPile == 'deal') {
+                    gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                } else {
+                    if (piles.pack.includes(this)) {
+                        let [col, row] = this.pilePos.split('-');
+                        piles.pilesState[+col - 1].splice(+row - 1, 1);
+                    
+                        let prevCard = piles.pilesState[+col - 1][+row - 2]
+                        if ((+col != (newPile+1)) && prevCard && !prevCard.fasingUp) {
+                            piles.reveal(`${col}-${+row - 1}`, shuffledDeck, shuffledDeck.pop())
+                        }
+                    } else {
+                        deck.revealedPack.pop();
+                        deck.removeChild(this);
+
+                        piles.pack.push(this);
+                        piles.addChild(this);
+                    }
+                    
+                    piles.pilesState[newPile].push(this);
+                    this.pilePos = `${newPile + 1}-${piles.pilesState[newPile].length}`
+                    gsap.to(this, { pixi: { x: getPilePosX(newPile), y: 200 + ((piles.pilesState[newPile].length - 1) * 40), scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+                }
             });
+            
     }
 }

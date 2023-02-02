@@ -44,10 +44,6 @@ export class Piles extends PIXI.Container {
                     tl.to(card, { x: getPilePosX(pile), y: 200 + (n * 40), duration: 0.15 });
                     i++;
 
-                    // card.on('pointerdown', () => {
-                    //     console.log('from piles');
-                    //     console.log(card.pilePos, card.suit, card.rank);
-                    // });
                 }
             }
         }

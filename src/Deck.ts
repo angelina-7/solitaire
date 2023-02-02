@@ -28,17 +28,19 @@ export class Deck extends PIXI.Container {
             const tl = gsap.timeline({defaults:  {duration: 0.05}});
 
             for (let i = 0; i < 24; i++) {
-                let card = this.revealedPack.shift();
+                let card: Card = this.revealedPack.shift();
 
                 if (card) {
-                    console.log(card.eventNames())
-                    if(card.eventNames().length > 0) {
-                        card.removeAllListeners();
+                    if (card.pilePos == 'deal') {
+
+                        if(card.eventNames().length > 0) {
+                            card.removeAllListeners();
+                        }
+                        
+                        card.flip();
+                        tl.to(card, {x: 0, ease: 'none'});
+                        this.pack.push(card);
                     }
-                    
-                    card.flip();
-                    tl.to(card, {x: 0, ease: 'none'});
-                    this.pack.push(card);
                 }
             }
         });
@@ -64,16 +66,23 @@ export class Deck extends PIXI.Container {
     }
 
     revealNextByAdding(piles, shuffledDeck, face) {
-            this.moves++;
-            let card = this.pack.shift();
-            card.suit = face.suit;
-            card.rank = face.rank;
+        this.moves++;
+        let card = this.pack.shift();
+        card.suit = face.suit;
+        card.rank = face.rank;
+        card.pilePos = 'deal';
 
-            this.revealedPack.push(card);
+        this.revealedPack.push(card);
 
-            card.addFace(face);
-            card.flip();
-            card.move(shuffledDeck, piles, this);
-            gsap.to(card, { x: 175 });
+        card.addFace(face);
+        card.flip();
+        card.move(shuffledDeck, piles, this);
+        gsap.to(card, { x: 175 });
+    }
+
+    isNextCardIsFasingDown() {
+        if (!this.pack[0].fasingUp) {
+            return true;
+        }
     }
 }
