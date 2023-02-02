@@ -19,14 +19,24 @@ export class Deck extends PIXI.Container {
         this.sortableChildren = true;
         this.addChild(...this.pack);
 
+        let retry = new PIXI.Container();
+
         let bt = new PIXI.Graphics();
         bt.beginFill(0xffffff);
         bt.drawRoundedRect(-25, -25, 50, 50, 10);
         bt.endFill();
 
-        this.addChildAt(bt, 0);
-        bt.interactive = true;
-        bt.on('pointerup', () => {
+        let retrySprite = PIXI.Sprite.from('assets/retry.svg');
+        retrySprite.scale.set(0.3);
+        retrySprite.anchor.set(0.5);
+
+        retry.addChild(bt, retrySprite);
+
+        this.addChildAt(retry, 0);
+
+        retry.interactive = true;
+
+        retry.on('pointerup', () => {
             const tl = gsap.timeline({ defaults: { duration: 0.05 } });
 
             for (let i = 0; i < 24; i++) {
@@ -34,11 +44,6 @@ export class Deck extends PIXI.Container {
 
                 if (card) {
                     if (card.pilePos == 'deal') {
-
-                        // if (card.eventNames().length > 0) {
-                        //     card.removeAllListeners();
-                        // }
-
                         card.flip();
                         tl.to(card, { x: 0, ease: 'none' });
                         this.pack.push(card);

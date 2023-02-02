@@ -28,7 +28,7 @@ export class Foundations extends PIXI.Container {
             picture.position.set(60, 90);
             
             container.addChild(fnd, picture);
-            container.position.set(555 + i * 175, 30)
+            container.position.set(555 + i * 175, 30);
             
             this.addChild(container);
         }

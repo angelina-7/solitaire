@@ -157,7 +157,6 @@ export class Card extends PIXI.Container {
 
     }
 
-
     placeCardFromDeckToPile(
         deck: Deck, piles: Piles, newPile: number, newPileLI: number, newPosLastCard: Card, initX: number, initY: number, skip?: boolean
     ) {
@@ -246,7 +245,7 @@ export class Card extends PIXI.Container {
                 clubsF.shift();
                 this.zIndex = -10;
                 this.pilePos = 'foundation';
-                gsap.to(this, { pixi: { x: 525, y: 0, scale: 1, zIndex: -clubsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                gsap.to(this, { pixi: { x: 615, y: 120, scale: 1, zIndex: -clubsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
@@ -272,7 +271,7 @@ export class Card extends PIXI.Container {
                 heartsF.shift();
                 this.zIndex = -10;
                 this.pilePos = 'foundation';
-                gsap.to(this, { pixi: { x: 700, y: 0, scale: 1, zIndex: -heartsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                gsap.to(this, { pixi: { x: 790, y: 120, scale: 1, zIndex: -heartsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
@@ -298,7 +297,7 @@ export class Card extends PIXI.Container {
                 spadesF.shift();
                 this.zIndex = -10;
                 this.pilePos = 'foundation';
-                gsap.to(this, { pixi: { x: 875, y: 0, scale: 1, zIndex: -spadesF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                gsap.to(this, { pixi: { x: 965, y: 120, scale: 1, zIndex: -spadesF.length }, duration: 0.3, ease: 'back.out(1.7)' });
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
@@ -324,7 +323,7 @@ export class Card extends PIXI.Container {
                 diamondsF.shift();
                 this.zIndex = -10;
                 this.pilePos = 'foundation';
-                gsap.to(this, { pixi: { x: 1050, y: 0, scale: 1, zIndex: -diamondsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
+                gsap.to(this, { pixi: { x: 1140, y: 120, scale: 1, zIndex: -diamondsF.length }, duration: 0.3, ease: 'back.out(1.7)' });
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);

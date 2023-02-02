@@ -60,6 +60,7 @@ async function loadGame() {
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/diamonds.svg');
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/hearts.svg');
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/spades.svg');
+    await PIXI.Assets.load<PIXI.BaseTexture>('assets/retry.svg');
     let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
 
     const cards = getCards(spreadsheet);
