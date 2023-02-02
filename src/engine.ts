@@ -90,14 +90,14 @@ function startGame(connection: Connection, cards: ICards) {
         piles.reveal('6-6', shuffledDeck.pop());
     }, 5000);
 
-    userInteractions(piles, deck, shuffledDeck);
+    userInteractions(piles, deck, foundations, shuffledDeck);
 
     app.stage.addChild(foundations, piles, deck);
 
 
 }
 
-function userInteractions(piles: Piles, deck: Deck, shuffledDeck: ICardContainer[]) {
+function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[]) {
     deck.on('pointerdown', (e) => {
         // console.log(deck.moves)
         // console.log(e.x, e.y)
@@ -131,9 +131,9 @@ function userInteractions(piles: Piles, deck: Deck, shuffledDeck: ICardContainer
 
         c.on('pointerup', (e) => {
             if (selectedCards) {
-                c.place(piles, deck, shuffledDeck, e.globalX, e.globalY, selectedCards);
+                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, selectedCards);
             } else {
-                c.place(piles, deck, shuffledDeck, e.globalX, e.globalY);
+                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY);
             }
         });
 

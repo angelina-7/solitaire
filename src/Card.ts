@@ -6,6 +6,7 @@ import { clubsF, diamondsF, heartsF, spadesF, getCardBack, getPileByPos, getPile
 import { Piles } from './Piles';
 import { Deck } from './Deck';
 import { canPlaceCard } from './rules';
+import { Foundations } from './Foundations';
 
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
@@ -108,7 +109,7 @@ export class Card extends PIXI.Container {
         }
     }
 
-    public place(piles: Piles, deck: Deck, shuffledDeck: ICardContainer[], x: number, y: number, selected?: Card[]) {
+    public place(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[], x: number, y: number, selected?: Card[]) {
         if (this.moving) {
             let initX = 175;
             let initY = 0;
@@ -149,7 +150,7 @@ export class Card extends PIXI.Container {
                 //return back to deck if user decides to drop it back
                 gsap.to(this, { pixi: { x: initX, y: initY, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
             } else if (typeof newPile == 'string') {
-                this.placeCardToFoundation(newPile, piles, deck, currPile, col, row, shuffledDeck);
+                this.placeCardToFoundation(newPile, piles, deck, foundations, currPile, col, row, shuffledDeck);
             }
             this.moving = false;
         }
@@ -239,7 +240,7 @@ export class Card extends PIXI.Container {
         }
     }
 
-    placeCardToFoundation(newPile: string, piles: Piles, deck: Deck, currPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
+    placeCardToFoundation(newPile: string, piles: Piles, deck: Deck, foundations: Foundations, currPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
         if (newPile == 'clubs') {
             if (this.suit == SuitName.clubs && this.rank == clubsF[0]) {
                 clubsF.shift();
@@ -250,6 +251,7 @@ export class Card extends PIXI.Container {
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
+                    piles.removeChild(this);
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
@@ -258,6 +260,7 @@ export class Card extends PIXI.Container {
                     deck.revealedPack.pop();
                     deck.removeChild(this);
                 }
+                foundations.addChild(this)
             } else {
                 if (this.pilePos == 'deal') {
                     gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
@@ -274,6 +277,7 @@ export class Card extends PIXI.Container {
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
+                    piles.removeChild(this);
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
@@ -282,6 +286,7 @@ export class Card extends PIXI.Container {
                     deck.revealedPack.pop();
                     deck.removeChild(this);
                 }
+                foundations.addChild(this)
             } else {
                 if (this.pilePos == 'deal') {
                     gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
@@ -298,6 +303,7 @@ export class Card extends PIXI.Container {
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
+                    piles.removeChild(this);
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
@@ -306,6 +312,7 @@ export class Card extends PIXI.Container {
                     deck.revealedPack.pop();
                     deck.removeChild(this);
                 }
+                foundations.addChild(this)
             } else {
                 if (this.pilePos == 'deal') {
                     gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
@@ -322,6 +329,7 @@ export class Card extends PIXI.Container {
 
                 if (col != -1) {
                     piles.pilesState[col].splice(row, 1);
+                    piles.removeChild(this);
                     let prevCard = piles.pilesState[col][row - 1];
                     if (prevCard && !prevCard.fasingUp) {
                         piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
@@ -330,6 +338,7 @@ export class Card extends PIXI.Container {
                     deck.revealedPack.pop();
                     deck.removeChild(this);
                 }
+                foundations.addChild(this)
             } else {
                 if (this.pilePos == 'deal') {
                     gsap.to(this, { pixi: { x: 175, y: 0, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
