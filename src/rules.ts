@@ -16,3 +16,11 @@ export function canPlaceCard(topCard: Card, bottomCard: Card) {
 }
 
 //todo foundation place rule
+export function foundationSuitMatch(cardSuit: SuitName, foundationSuit: string) {
+    if (foundationSuit == 'clubs' && cardSuit == SuitName.clubs) return true;
+    if (foundationSuit == 'hearts' && cardSuit == SuitName.hearts) return true;
+    if (foundationSuit == 'spades' && cardSuit == SuitName.spades) return true;
+    if (foundationSuit == 'diamonds' && cardSuit == SuitName.diamonds) return true;
+    return false;
+
+}
