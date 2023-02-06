@@ -55,5 +55,6 @@ export class Piles extends PIXI.Container {
         card.rank = face.rank;
         card.addFace(face);
         card.flip();
+        
     }
 }

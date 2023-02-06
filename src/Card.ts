@@ -2,12 +2,11 @@ import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
 
-import { clubsF, diamondsF, heartsF, spadesF, getCardBack, getPileByPos, getPilePosX, ICardContainer, Rank, SuitName, IFoundationContainer } from './util';
+import { getCardBack, getPileByPos, getPilePosX, ICardContainer, Rank, SuitName, IFoundationContainer } from './util';
 import { Piles } from './Piles';
 import { Deck } from './Deck';
 import { canPlaceCard, foundationSuitMatch } from './rules';
 import { Foundations } from './Foundations';
-import { Container } from 'pixi.js';
 
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
@@ -44,7 +43,7 @@ export class Card extends PIXI.Container {
         this.addChild(this.back);
     }
 
-    public addFace(face: PIXI.Container) {
+    public addFace(face: ICardContainer) {
         this.face.pivot.set(- this.width / 2, 1);
         this.face.addChild(face);
     }
@@ -58,10 +57,14 @@ export class Card extends PIXI.Container {
                     this.fasingUp = false;
                     this.removeChildren();
                     this.addBack();
+                    // console.log(this.pilePos, 'see back');
+                    
                 } else {
                     this.fasingUp = true;
                     this.removeChildren();
                     this.addChild(this.face);
+                    // console.log(this.pilePos, 'see front');
+                    
                 }
             }
         }, '<')
@@ -101,6 +104,7 @@ export class Card extends PIXI.Container {
 
     public move(x: number, y: number, selected?: Card[]) {
         if (this.moving) {
+            //bug when moving fast 
             if (selected) {
                 selected.forEach((c, i) => {
                     c.position.set(x - 90, y + ((i - 1) * 40))
@@ -123,12 +127,12 @@ export class Card extends PIXI.Container {
 
                 if (this.placeToPile(newPile, piles)) {
                     if (selected) {
-                        this.multipleFromPile(piles, selected, Number(newPile), col, row, shuffledDeck.pop())
+                        this.multipleFromPile(piles, selected, Number(newPile), col, row, shuffledDeck)
                     } else {
-                        this.fromPile(piles, Number(newPile), col, row, shuffledDeck.pop())
+                        this.fromPile(piles, Number(newPile), col, row, shuffledDeck)
                     }
                 } else if (this.placeToFoundation(newPile.toString(), foundations)) {
-                    this.fromPileToFound(piles, foundations, col, row, shuffledDeck.pop())
+                    this.fromPileToFound(piles, foundations, col, row, shuffledDeck)
                 } else {
                     if (selected) {
                         this.returnBackAnimationMultiple(initX, initY, selected);
@@ -183,7 +187,7 @@ export class Card extends PIXI.Container {
         return false;
     }
 
-    private fromPileToFound(piles: Piles, foundations: Foundations, col: number, row: number, face: ICardContainer) {
+    private fromPileToFound(piles: Piles, foundations: Foundations, col: number, row: number, shuffledDeck: ICardContainer[]) {
         piles.pilesState[col].splice(row, 1);
         this.pilePos = 'foundation';
 
@@ -193,7 +197,7 @@ export class Card extends PIXI.Container {
         piles.removeChild(this);
         this.removeAllListeners();
 
-        this.revealCardUnder(piles, col, row, face);
+        this.revealCardUnder(piles, col, row, shuffledDeck);
         this.toFoundAnimation(foundations);
     }
 
@@ -223,7 +227,7 @@ export class Card extends PIXI.Container {
         return false;
     }
 
-    private fromPile(piles: Piles, newPile: number, col: number, row: number, face) {
+    private fromPile(piles: Piles, newPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
         let newPileLI = piles.pilesState[newPile].length - 1;
 
         piles.pilesState[col].splice(row, 1);
@@ -232,13 +236,13 @@ export class Card extends PIXI.Container {
         this.pilePos = `${newPile}-${newPileLI + 1}`
 
         if ((col != (newPile))) {
-            this.revealCardUnder(piles, col, row, face)
+            this.revealCardUnder(piles, col, row, shuffledDeck)
         }
 
         this.placeAnimation(newPile, newPileLI);
     }
 
-    private multipleFromPile(piles: Piles, selected: Card[], newPile: number, col: number, row: number, face) {
+    private multipleFromPile(piles: Piles, selected: Card[], newPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
         let newPileLI = piles.pilesState[newPile].length;
 
         piles.pilesState[col].splice(row, selected.length);
@@ -250,7 +254,7 @@ export class Card extends PIXI.Container {
         })
 
         if ((col != (newPile))) {
-            this.revealCardUnder(piles, col, row, face)
+            this.revealCardUnder(piles, col, row, shuffledDeck)
         }
     }
 
@@ -269,10 +273,10 @@ export class Card extends PIXI.Container {
         this.placeAnimation(newPile, newPileLI);
     }
 
-    private revealCardUnder(piles: Piles, col: number, row: number, face: ICardContainer) {
+    private revealCardUnder(piles: Piles, col: number, row: number, shuffledDeck: ICardContainer[]) {
         let prevCard = piles.pilesState[col][row - 1];
         if (prevCard && !prevCard.fasingUp) {
-            piles.reveal(`${col}-${row - 1}`, face)
+            piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
         }
     }
 
@@ -291,6 +295,7 @@ export class Card extends PIXI.Container {
 
     private returnBackAnimationMultiple(initX: number, initY: number, selected: Card[]) {
         selected.forEach((c, i) => {
+            c.zIndex = 1;
             if (i != 0) {
                 let [col, row] = c.pilePos.split('-').map(x => Number(x));
                 [initX, initY] = this.getInitPosition(col, row);
@@ -306,8 +311,8 @@ export class Card extends PIXI.Container {
 
     private selectAnimation(card: Card, x: number, y: number, i?: number) {
         y = y - 40
-        if (i) {
-            y = y + ((i - 1) * 40);
+        if (i>=1) {
+            y = y + (i * 40);
         }
         gsap.to(card, { pixi: { x: x - 90, y, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
     }

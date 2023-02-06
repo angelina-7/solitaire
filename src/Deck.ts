@@ -36,19 +36,23 @@ export class Deck extends PIXI.Container {
 
         retry.interactive = true;
 
-        retry.on('pointerup', () => {
+        retry.on('pointerdown', () => {
+            console.log('retry');
+
             const tl = gsap.timeline({ defaults: { duration: 0.05 } });
 
-            for (let i = 0; i < 24; i++) {
+            //wait for animation onReveal to finish
+            let revealed = this.revealedPack.length
+            for (let i = 0; i < revealed; i++) {
                 let card: Card = this.revealedPack.shift();
 
-                if (card) {
-                    if (card.pilePos == 'deal') {
-                        card.flip();
-                        tl.to(card, { x: 0, ease: 'none' });
-                        this.pack.push(card);
-                    }
-                }
+                // if (card) {
+                // if (card.pilePos == 'deal') {
+                card.flip();
+                tl.to(card, { x: 0, ease: 'none' });
+                this.pack.push(card);
+                // }
+                // }
             }
         });
     }
@@ -84,9 +88,9 @@ export class Deck extends PIXI.Container {
         gsap.to(card, { x: 175 });
     }
 
-    isNextCardIsFasingDown() {
-        if (!this.pack[0].fasingUp) {
-            return true;
-        }
-    }
+    // isNextCardIsFasingDown() {
+    //     if (!this.pack[0].fasingUp) {
+    //         return true;
+    //     }
+    // }
 }

@@ -15,7 +15,6 @@ export function canPlaceCard(topCard: Card, bottomCard: Card) {
     return false;
 }
 
-//todo foundation place rule
 export function foundationSuitMatch(cardSuit: SuitName, foundationSuit: string) {
     if (foundationSuit == 'clubs' && cardSuit == SuitName.clubs) return true;
     if (foundationSuit == 'hearts' && cardSuit == SuitName.hearts) return true;

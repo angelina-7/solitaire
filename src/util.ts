@@ -29,12 +29,6 @@ export enum Rank {
     ace, _2, _3, _4, _5, _6, _7, _8, _9, _10, jack, queen, king
 }
 
-export const spadesF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
-export const heartsF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
-export const clubsF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
-export const diamondsF = [Rank.ace, Rank._2, Rank._3, Rank._4, Rank._5, Rank._6, Rank._7, Rank._8, Rank._9, Rank._10, Rank.jack, Rank.queen, Rank.king];
-
-
 export function getCards(sheet: PIXI.BaseTexture): ICards {
     return {
         'c': getSuit(sheet, SuitName.clubs),
@@ -167,7 +161,7 @@ function particle(color: number, parent: PIXI.Container) {
     sq.endFill();
     sq.pivot.set(3, 3);
 
-    gsap.fromTo(sq, {pixi: {scale: 0}}, {pixi: {x: 'random(-100, 100)', y: 'random(-100, 100)', rotation: 1440, scale: 3, blur: 1}, duration: 2});
+    gsap.fromTo(sq, {pixi: {scale: 0}}, {pixi: {x: 'random(-100, 100)', y: 'random(-100, 100)', rotation: 1440, scale: 3}, duration: 2});
     gsap.to(sq, {pixi: {tint: color}, duration: 1});
     gsap.to(sq, {pixi: {tint: 0}, duration: 1, delay: 1});
 
