@@ -21,6 +21,13 @@ export interface ICards {
     'd': ICardContainer[],
 }
 
+export const Suits = {
+    'clubs': 0,
+    'hearts': 1,
+    'spades': 2,
+    'diamonds': 3
+}
+
 export enum SuitName {
     clubs, hearts, spades, diamonds
 }

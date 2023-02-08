@@ -23,27 +23,44 @@ loadBar.drawRect(0, 0, 400, 50);
 loadBar.position.set(400, 370);
 app.stage.addChild(loadBar);
 
-
 const actionSection = document.getElementById('action');
 const boardSection = document.getElementById('board');
 
 export function engine(connection: Connection) {
-    const state = {};
+    let state: any = {};
 
     actionSection.innerHTML = '';
     boardSection.innerHTML = '';
 
     boardSection.appendChild(app.view as HTMLCanvasElement);
     app.ticker.add(update);
+
     loadGame()
         .then((cards: ICards) => {
-            startGame(connection, cards);
-        })
+            startGame(cards);
+        });
 
     connection.on('state', onState);
 
-    function onState(state) {
-        console.log('received state', state);
+    function onState(receivedState) {
+        console.log('received state', receivedState);
+
+        state = receivedState;
+    }
+
+    function startGame(cards: ICards) {
+        const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
+        let allCards = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
+    
+        const shuffledDeck = allCards.sort((a, b) => 0.5 - Math.random());
+        
+        let piles = new Piles(state.piles, allCards);
+        let deck = new Deck();
+        let foundations = new Foundations(foundationsInfo);
+    
+        userInteractions(piles, deck, foundations, shuffledDeck);
+    
+        app.stage.addChild(foundations, piles, deck);
     }
 }
 
@@ -68,33 +85,6 @@ async function loadGame() {
     app.stage.removeChild(loadBar);
 
     return cards;
-}
-
-function startGame(connection: Connection, cards: ICards) {
-    const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
-    let startingDeck = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-
-    const shuffledDeck = startingDeck.sort((a, b) => 0.5 - Math.random());
-
-    let piles = new Piles();
-    let deck = new Deck();
-    let foundations = new Foundations(foundationsInfo);
-
-    setTimeout(() => {
-        piles.reveal('0-0', shuffledDeck.pop());
-        piles.reveal('1-1', shuffledDeck.pop());
-        piles.reveal('2-2', shuffledDeck.pop());
-        piles.reveal('3-3', shuffledDeck.pop());
-        piles.reveal('4-4', shuffledDeck.pop());
-        piles.reveal('5-5', shuffledDeck.pop());
-        piles.reveal('6-6', shuffledDeck.pop());
-    }, 5000);
-
-    userInteractions(piles, deck, foundations, shuffledDeck);
-
-    app.stage.addChild(foundations, piles, deck);
-
-
 }
 
 function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[]) {
@@ -142,7 +132,5 @@ function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, sh
                 }
             }
         });
-
-    })
-
+    });
 }
