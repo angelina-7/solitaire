@@ -37,6 +37,7 @@ export class Piles extends PIXI.Container {
                 if (n <= pile) {
                     let card = this.pack[i];
                     card.pilePos = `${pile}-${n}`;
+                    card.location = 'pile';
                     card.rank = this.state[pile].cards[n].face - 1;
                     card.suit = Suits[this.state[pile].cards[n].suit];
 

@@ -23,24 +23,39 @@ loadBar.drawRect(0, 0, 400, 50);
 loadBar.position.set(400, 370);
 app.stage.addChild(loadBar);
 
+
 const actionSection = document.getElementById('action');
 const boardSection = document.getElementById('board');
 
-export function engine(connection: Connection) {
+export async function engine(connection: Connection) {
     let state: any = {};
+    let move = null;
+    let moves = null;
 
+    loadGame();
+
+    connection.on('state', onState);
+    connection.on('moves', onMoves);
+    connection.on('moveResult', onResult);
+
+    const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
+    let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
+    const cards = getCards(spreadsheet);
+
+    let allCards = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
+    const shuffledDeck = allCards.sort((a, b) => 0.5 - Math.random());
+    
+    let deck = new Deck(allCards);
+    let piles = new Piles(state.piles, allCards);
+    let foundations = new Foundations(foundationsInfo);
+    
     actionSection.innerHTML = '';
     boardSection.innerHTML = '';
 
     boardSection.appendChild(app.view as HTMLCanvasElement);
     app.ticker.add(update);
 
-    loadGame()
-        .then((cards: ICards) => {
-            startGame(cards);
-        });
-
-    connection.on('state', onState);
+    startGame(deck, piles, foundations, shuffledDeck);
 
     function onState(receivedState) {
         console.log('received state', receivedState);
@@ -48,19 +63,104 @@ export function engine(connection: Connection) {
         state = receivedState;
     }
 
-    function startGame(cards: ICards) {
-        const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
-        let allCards = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-    
-        const shuffledDeck = allCards.sort((a, b) => 0.5 - Math.random());
-        
-        let piles = new Piles(state.piles, allCards);
-        let deck = new Deck();
-        let foundations = new Foundations(foundationsInfo);
-    
+    function onMoves(receivedMoves) {
+        moves = receivedMoves;
+        console.log('received moves', moves);
+        // mergeMoves();
+    }
+
+    function onResult(data) {
+        console.log(move, data);
+
+        if (move != null) {
+            if (move.action == 'flip') {
+                if (move.source == 'stock') {
+                    if (deck.moves < 24) {
+                        deck.revealNext(data);
+                    } else {
+                        deck.revealNext();
+                    }
+                }
+            }
+        }
+    }
+
+    function startGame(deck, piles, foundations, shuffledDeck) {
+
         userInteractions(piles, deck, foundations, shuffledDeck);
     
         app.stage.addChild(foundations, piles, deck);
+    }
+
+    function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[]) {
+        const allCards = [...piles.pack, ...deck.pack];
+    
+        //all cards have listeners but triggered only when fasing up
+        allCards.forEach(c => {
+
+            let selectedCards;
+
+            c.on('pointerdown', (e) => {
+
+                // console.log(c.location);
+
+                let action = 'take';
+                const pileIndex = c.pilePos.split('-')[0];
+                let index: any;
+                // const action = card.dataset.action;
+                // const stack = card.parentElement;
+                // const suit = stack.dataset.suit;
+                const type = c.location;
+
+                if (e.x >= 10 && e.x <= 156 && e.y >= 10 && e.y <= 298) {
+                    action = 'flip';
+                    index = Number(c.index);
+                } else {
+                    index = c.pilePos.split('-')[1];
+                }
+    
+                move = {
+                    action,
+                    source: type,
+                    target: null,
+                    index
+                };
+
+                if (type == 'pile') {
+                    move.source += pileIndex;
+                }
+
+                connection.send('move', move);
+
+                selectedCards = c.select(piles, deck, e.globalX, e.globalY);
+            });
+    
+            c.on('pointermove', (e) => {
+                if (selectedCards) {
+                    c.move(e.globalX, e.globalY, selectedCards);
+                }
+                else {
+                    c.move(e.globalX, e.globalY);
+                }
+    
+            });
+    
+            c.on('pointerup', (e) => {
+                if (selectedCards) {
+                    c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, selectedCards);
+                } else {
+                    c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY);
+                }
+                selectedCards = null;
+    
+                if ((deck.pack.length + deck.revealedPack.length + piles.pack.length) == 0) {
+                    for (let i = 0; i < 25; i++) {
+                        const sparkles = firework(150 + Math.random() * 900, 100 + Math.random() * 640, ((Math.random() * 256 | 0) << 16) + ((Math.random() * 256 | 0) << 8) + (Math.random() * 256 | 0));
+                        app.stage.addChild(sparkles);
+                    }
+                }
+            });
+        })
     }
 }
 
@@ -78,59 +178,6 @@ async function loadGame() {
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/hearts.svg');
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/spades.svg');
     await PIXI.Assets.load<PIXI.BaseTexture>('assets/retry.svg');
-    let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
-
-    const cards = getCards(spreadsheet);
 
     app.stage.removeChild(loadBar);
-
-    return cards;
-}
-
-function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[]) {
-    deck.on('pointerdown', (e) => {
-        if (e.x >= 10 && e.x <= 156 && e.y >= 10 && e.y <= 298) {
-            if (deck.moves < 24) {
-                deck.revealNext(shuffledDeck.pop());
-            } else {
-                deck.revealNext();
-            }
-        }
-    });
-
-    const allCards = [...piles.pack, ...deck.pack];
-
-    //all cards have listeners but triggered only when fasing up
-    allCards.forEach(c => {
-        let selectedCards;
-        c.on('pointerdown', (e) => {
-            selectedCards = c.select(piles, deck, e.globalX, e.globalY);
-        });
-
-        c.on('pointermove', (e) => {
-            if (selectedCards) {
-                c.move(e.globalX, e.globalY, selectedCards);
-            }
-            else {
-                c.move(e.globalX, e.globalY);
-            }
-
-        });
-
-        c.on('pointerup', (e) => {
-            if (selectedCards) {
-                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, selectedCards);
-            } else {
-                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY);
-            }
-            selectedCards = null;
-
-            if ((deck.pack.length + deck.revealedPack.length + piles.pack.length) == 0) {
-                for (let i = 0; i < 25; i++) {
-                    const sparkles = firework(150 + Math.random() * 900, 100 + Math.random() * 640, ((Math.random() * 256 | 0) << 16) + ((Math.random() * 256 | 0) << 8) + (Math.random() * 256 | 0));
-                    app.stage.addChild(sparkles);
-                }
-            }
-        });
-    });
 }

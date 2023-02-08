@@ -18,7 +18,10 @@ export class Card extends PIXI.Container {
     public rank: Rank;
     public suit: SuitName;
     public moving = false;
+    public location: string = null;
+    public index: any = null;
     private _pilePos = '';
+    
 
     constructor() {
         super();
