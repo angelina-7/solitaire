@@ -2,20 +2,24 @@ import * as PIXI from "pixi.js";
 import { gsap } from "gsap";
 
 import { Card } from "./Card";
-import { ICardContainer } from "./util";
+import { Suits } from "./util";
 
 export class Deck extends PIXI.Container {
     public pack: Card[] = [];
     public revealedPack: Card[] = [];
     public moves: number = 0;
 
-    constructor() {
+    constructor(public allCards) {
         super();
         this.position.set(90, 120);
 
         for (let i = 0; i < 24; i++) {
-            this.pack.push(new Card());
+            let card = new Card();
+            card.location = 'stock';
+            card.index = i;
+            this.pack.push(card);
         }
+
         this.sortableChildren = true;
         this.addChild(...this.pack);
 
@@ -46,23 +50,19 @@ export class Deck extends PIXI.Container {
             for (let i = 0; i < revealed; i++) {
                 let card: Card = this.revealedPack.shift();
 
-                // if (card) {
-                // if (card.pilePos == 'deal') {
                 card.flip();
                 tl.to(card, { x: 0, ease: 'none' });
                 this.pack.push(card);
-                // }
-                // }
             }
         });
     }
 
-    revealNext(face?: ICardContainer) {
+    revealNext(cardInfo?) {
         let lastCard = this.revealedPack[this.revealedPack.length - 1];
 
         if (!lastCard?.moving) {
             if (this.moves < 24) {
-                this.revealNextByAdding(face);
+                this.revealNextByAdding(cardInfo);
             } else {
                 if (this.pack.length > 0) {
                     let card = this.pack.shift();
@@ -75,22 +75,18 @@ export class Deck extends PIXI.Container {
         }
     }
 
-    revealNextByAdding(face: ICardContainer) {
+    revealNextByAdding(cardInfo) {
         this.moves++;
         let card = this.pack.shift();
-        card.suit = face.suit;
-        card.rank = face.rank;
+        card.suit = Suits[cardInfo.suit];
+        card.rank = cardInfo.face - 1;
         card.pilePos = 'deal';
         this.revealedPack.push(card);
 
-        card.addFace(face);
+        let cardFace = this.allCards.find(x => x.suit == card.suit && x.rank == card.rank);
+
+        card.addFace(cardFace);
         card.flip();
         gsap.to(card, { x: 175 });
     }
-
-    // isNextCardIsFasingDown() {
-    //     if (!this.pack[0].fasingUp) {
-    //         return true;
-    //     }
-    // }
 }

@@ -18,7 +18,10 @@ export class Card extends PIXI.Container {
     public rank: Rank;
     public suit: SuitName;
     public moving = false;
+    public location: string = null;
+    public index: any = null;
     private _pilePos = '';
+    
 
     constructor() {
         super();
@@ -79,7 +82,7 @@ export class Card extends PIXI.Container {
             let initY = this.y + this.parent.y            
 
             overlay.hitArea = new PIXI.Rectangle(0, 0, 1225, 840)
-            
+
             if (piles.pack.includes(this)) {
                 let [col, row] = this.pilePos.split('-').map(x => Number(x));
                 let len = piles.pilesState[col].length - 1;
@@ -157,8 +160,8 @@ export class Card extends PIXI.Container {
                     }
                 }
 
-            } else if (deck.revealedPack.includes(this)) {
-                deck.addChild(this);
+            } else if (deck.revealedPack.includes(this)) {                
+                deck.addChildAt(this, this.index+1);
                 [initX, initY] = [175, 0];
 
                 if (this.placeToPile(newPile, piles)) {
