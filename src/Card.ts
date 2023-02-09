@@ -21,7 +21,7 @@ export class Card extends PIXI.Container {
     public location: string = null;
     public index: any = null;
     private _pilePos = '';
-    
+
 
     constructor() {
         super();
@@ -79,7 +79,7 @@ export class Card extends PIXI.Container {
             this.moving = true;
 
             let initX = this.x + this.parent.x
-            let initY = this.y + this.parent.y            
+            let initY = this.y + this.parent.y
 
             overlay.hitArea = new PIXI.Rectangle(0, 0, 1225, 840)
 
@@ -130,52 +130,45 @@ export class Card extends PIXI.Container {
         }
     }
 
-    public place(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[], x: number, y: number, overlay: PIXI.Sprite, selected?: Card[]) {
-        if (this.moving) {
-            let initX = 0;
-            let initY = 0;
-            let newPile = getPileByPos(x, y);
-            overlay.removeChildren();
-            overlay.hitArea = undefined;
+    public place(doPlace: boolean, from: Piles | Deck, to: Piles | Foundations, overlay: PIXI.Sprite, newPile?: string | number, cardUnder?) {
+        let initX = 0;
+        let initY = 0;
+        overlay.removeChildren();
+        overlay.hitArea = undefined;
+        this.moving = false;
 
-            if (piles.pack.includes(this)) {
-                piles.addChild(this);
-                let [col, row] = this.pilePos.split('-').map(x => Number(x));
-                [initX, initY] = this.getInitPosition(col, row);
+        if (from instanceof Piles) {
+            from.addChild(this);
+            let [col, row] = this.pilePos.split('-').map(x => Number(x));
+            [initX, initY] = this.getInitPosition(col, row);
 
-                if (this.placeToPile(newPile, piles)) {
-                    if (selected) {
-                        this.multipleFromPile(piles, selected, Number(newPile), col, row, shuffledDeck)
-                    } else {
-                        this.fromPile(piles, Number(newPile), col, row, shuffledDeck)
-                    }
-                } else if (this.placeToFoundation(newPile.toString(), foundations)) {
-                    this.fromPileToFound(piles, foundations, col, row, shuffledDeck)
-                } else {
-                    if (selected) {
-                        this.returnBackAnimationMultiple(initX, initY, selected);
-                    } else {
-                        this.zIndex = 1;
-                        this.returnBackAnimation(initX, initY);
-                    }
+            if (doPlace) {
+                if (to instanceof Piles) {
+
+                    this.fromPile(from, Number(newPile), col, row, cardUnder)
+
+                } else if (this.placeToFoundation(newPile.toString(), to)) {
+                    this.fromPileToFound(from, to, col, row, cardUnder)
                 }
-
-            } else if (deck.revealedPack.includes(this)) {                
-                deck.addChildAt(this, this.index+1);
-                [initX, initY] = [175, 0];
-
-                if (this.placeToPile(newPile, piles)) {
-                    this.fromDeck(deck, piles, Number(newPile))
-                } else if (this.placeToFoundation(newPile.toString(), foundations)) {
-                    this.fromDeckToFound(deck, foundations)
-                } else {
-                    this.returnBackAnimation(initX, initY)
-                }
+            } else {
+                this.zIndex = 1;
+                this.returnBackAnimation(initX, initY);
             }
 
-            this.moving = false;
-        }
+        } else if (from instanceof Deck) {
+            from.addChildAt(this, this.index + 1);
+            [initX, initY] = [175, 0];
 
+            if (doPlace) {
+                if (to instanceof Piles) {
+                    this.fromDeck(from, to, Number(newPile))
+                } else if (this.placeToFoundation(newPile.toString(), to)) {
+                    this.fromDeckToFound(from, to)
+                }
+            } else {
+                this.returnBackAnimation(initX, initY);
+            }
+        }
     }
 
 
@@ -206,7 +199,7 @@ export class Card extends PIXI.Container {
         return false;
     }
 
-    private fromPileToFound(piles: Piles, foundations: Foundations, col: number, row: number, shuffledDeck: ICardContainer[]) {
+    private fromPileToFound(piles: Piles, foundations: Foundations, col: number, row: number, cardUnder) {
         piles.pilesState[col].splice(row, 1);
         this.pilePos = 'foundation';
 
@@ -216,7 +209,7 @@ export class Card extends PIXI.Container {
         piles.removeChild(this);
         this.removeAllListeners();
 
-        this.revealCardUnder(piles, col, row, shuffledDeck);
+        cardUnder()
         this.toFoundAnimation(foundations);
     }
 
@@ -227,26 +220,7 @@ export class Card extends PIXI.Container {
         this.toFoundAnimation(foundations);
     }
 
-
-    private placeToPile(newPile: string | number, piles: Piles): boolean {
-        if (typeof newPile == 'number') {
-            let newPileLI = piles.pilesState[newPile].length - 1;
-            let newPosLastCard = piles.pilesState[newPile][newPileLI];
-
-            if (newPosLastCard) {
-                if (canPlaceCard(this, newPosLastCard)) {
-                    return true;
-                }
-            } else {
-                if (this.rank == Rank.king) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private fromPile(piles: Piles, newPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
+    private fromPile(piles: Piles, newPile: number, col: number, row: number, cardUnder) {
         let newPileLI = piles.pilesState[newPile].length - 1;
 
         piles.pilesState[col].splice(row, 1);
@@ -255,27 +229,27 @@ export class Card extends PIXI.Container {
         this.pilePos = `${newPile}-${newPileLI + 1}`
 
         if ((col != (newPile))) {
-            this.revealCardUnder(piles, col, row, shuffledDeck)
+            cardUnder()
         }
 
         this.placeAnimation(newPile, newPileLI);
     }
 
-    private multipleFromPile(piles: Piles, selected: Card[], newPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
-        let newPileLI = piles.pilesState[newPile].length;
+    // private multipleFromPile(piles: Piles, selected: Card[], newPile: number, col: number, row: number, shuffledDeck: ICardContainer[]) {
+    //     let newPileLI = piles.pilesState[newPile].length;
 
-        piles.pilesState[col].splice(row, selected.length);
+    //     piles.pilesState[col].splice(row, selected.length);
 
-        selected.forEach((c, i) => {
-            piles.pilesState[newPile].push(c);
-            c.pilePos = `${newPile}-${newPileLI + i}`
-            this.placeAnimationMultiple(c, newPile, newPileLI, i);
-        })
+    //     selected.forEach((c, i) => {
+    //         piles.pilesState[newPile].push(c);
+    //         c.pilePos = `${newPile}-${newPileLI + i}`
+    //         this.placeAnimationMultiple(c, newPile, newPileLI, i);
+    //     })
 
-        if ((col != (newPile))) {
-            this.revealCardUnder(piles, col, row, shuffledDeck)
-        }
-    }
+    //     if ((col != (newPile))) {
+    //         this.revealCardUnder(piles, col, row, shuffledDeck)
+    //     }
+    // }
 
     private fromDeck(deck: Deck, piles: Piles, newPile: number) {
         let newPileLI = piles.pilesState[newPile].length - 1;
@@ -292,13 +266,6 @@ export class Card extends PIXI.Container {
         this.placeAnimation(newPile, newPileLI);
     }
 
-    private revealCardUnder(piles: Piles, col: number, row: number, shuffledDeck: ICardContainer[]) {
-        let prevCard = piles.pilesState[col][row - 1];
-        if (prevCard && !prevCard.fasingUp) {
-            piles.reveal(`${col}-${row - 1}`, shuffledDeck.pop())
-        }
-    }
-
     private placeAnimation(newPile, newPileLI) {
         this.placeAnimationMultiple(this, newPile, newPileLI, 1);
     }
@@ -312,16 +279,16 @@ export class Card extends PIXI.Container {
         gsap.to(this, { pixi: { x: initX, y: initY, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
     }
 
-    private returnBackAnimationMultiple(initX: number, initY: number, selected: Card[]) {
-        selected.forEach((c, i) => {
-            c.zIndex = 1;
-            if (i != 0) {
-                let [col, row] = c.pilePos.split('-').map(x => Number(x));
-                [initX, initY] = this.getInitPosition(col, row);
-            }
-            gsap.to(c, { pixi: { x: initX, y: initY, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
-        })
-    }
+    // private returnBackAnimationMultiple(initX: number, initY: number, selected: Card[]) {
+    //     selected.forEach((c, i) => {
+    //         c.zIndex = 1;
+    //         if (i != 0) {
+    //             let [col, row] = c.pilePos.split('-').map(x => Number(x));
+    //             [initX, initY] = this.getInitPosition(col, row);
+    //         }
+    //         gsap.to(c, { pixi: { x: initX, y: initY, scale: 1 }, duration: 0.3, ease: 'back.out(1.7)' });
+    //     })
+    // }
 
     private toFoundAnimation(foundations) {
         let zIndex = foundations.getChildAt(this.suit).children.length;
@@ -333,6 +300,6 @@ export class Card extends PIXI.Container {
         if (i >= 1) {
             y = y + (i * 40);
         }
-        gsap.fromTo(card, {pixi: {x: initX, y: initY}}, { pixi: { x: x, y, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
+        gsap.fromTo(card, { pixi: { x: initX, y: initY } }, { pixi: { x: x, y, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
     }
 }

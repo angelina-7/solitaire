@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
 
 import { Connection } from "./Connection";
-import { firework, getCards, ICardContainer, ICards } from "./util";
+import { firework, getCards, getPileByPos, ICardContainer, ICards, Suits } from "./util";
 import { Deck } from "./Deck";
 import { Piles } from "./Piles";
 import { Foundations } from "./Foundations";
@@ -44,7 +44,7 @@ export async function engine(connection: Connection) {
     const cards = getCards(spreadsheet);
 
     let allCards = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-    const shuffledDeck = allCards.sort((a, b) => 0.5 - Math.random());
+    // const shuffledDeck = allCards.sort((a, b) => 0.5 - Math.random());
     
     let deck = new Deck(allCards);
     let piles = new Piles(state.piles, allCards);
@@ -57,7 +57,7 @@ export async function engine(connection: Connection) {
     boardSection.appendChild(app.view as HTMLCanvasElement);
     app.ticker.add(update);
 
-    startGame(deck, piles, foundations, shuffledDeck, overlay);
+    startGame(deck, piles, foundations, overlay);
 
     function onState(receivedState) {
         console.log('received state', receivedState);
@@ -83,18 +83,44 @@ export async function engine(connection: Connection) {
                         deck.revealNext();
                     }
                 }
+            }else if (move.action == 'place') {
+                if (move.source == 'stock') {
+                    let card = deck.revealedPack.find(c => c.index == move.index);
+                    console.log(card);
+                    
+                    if (move.target.includes('pile')) {
+                        const pileIndex = Number(move.target[4]);
+                        card.place(data, deck, piles, overlay, pileIndex)
+                    } else if (Object.keys(Suits).includes(move.target)) {
+                        card.place(data, deck, foundations, overlay, move.target)
+                    }
+                } else if (move.source.includes('pile')) {
+                    const sourcePileIndex = Number(move.source[4]);
+                    const cardIndex = Number(move.index);
+
+                    let card = piles.pack.find(c => c.pilePos == `${sourcePileIndex}-${cardIndex}`);
+                    console.log(card);
+                    
+                    if (move.target.includes('pile')) {
+                        const pileIndex = Number(move.target[4]);
+                        card.place(data, piles, piles, overlay, pileIndex, () => { })
+                    } else if (Object.keys(Suits).includes(move.target)) {
+                        card.place(data, piles, foundations, overlay, move.target, () => { })
+                    }
+                }
+
             }
         }
     }
 
-    function startGame(deck, piles, foundations, shuffledDeck, overlay) {
+    function startGame(deck, piles, foundations, overlay) {
 
-        userInteractions(piles, deck, foundations, shuffledDeck, overlay);
+        userInteractions(piles, deck, foundations, overlay);
     
         app.stage.addChild(foundations, piles, deck, overlay);
     }
 
-    function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[], overlay: PIXI.Sprite) {
+    function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, overlay: PIXI.Sprite) {
         const allCards = [...piles.pack, ...deck.pack];
     
         //all cards have listeners but triggered only when fasing up
@@ -131,6 +157,11 @@ export async function engine(connection: Connection) {
                 if (type == 'pile') {
                     move.source += pileIndex;
                 }
+                //todo: index not working with take and place actions -> ref: server -> Game.js row: 75, 137
+
+                // else if(type == 'stock'){
+                //     move.index = Number(c.index);
+                // }
 
                 connection.send('move', move);
 
@@ -148,18 +179,30 @@ export async function engine(connection: Connection) {
             // });
     
             c.on('pointerup', (e) => {
-                if (selectedCards) {
-                    c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, overlay, selectedCards);
-                } else {
-                    c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, overlay);
-                }
-                selectedCards = null;
-    
-                if ((deck.pack.length + deck.revealedPack.length + piles.pack.length) == 0) {
-                    for (let i = 0; i < 25; i++) {
-                        const sparkles = firework(150 + Math.random() * 900, 100 + Math.random() * 640, ((Math.random() * 256 | 0) << 16) + ((Math.random() * 256 | 0) << 8) + (Math.random() * 256 | 0));
-                        app.stage.addChild(sparkles);
+                if (c.moving) {
+                    let action = 'place'
+                    let type = c.location;
+                    let target = getPileByPos(e.globalX, e.globalY);
+                    let index = Number(c.index);
+
+                    if (type == 'pile') {
+                        type += c.pilePos.split('-')[0];
+                        index = Number(c.pilePos.split('-')[1]);
                     }
+                    if (target == 'deal') {
+                        target == null
+                    } else if (typeof target == 'number') {
+                        target = 'pile' + target
+                    }
+
+                    move = {
+                        action,
+                        source: type,
+                        target,
+                        index
+                    };
+
+                    connection.send('move', move);
                 }
             });
         })
@@ -172,7 +215,7 @@ function createOverlay() {
     // wrap.hitArea = new PIXI.Rectangle(0,0, 1225, 840)
 
     wrap.on('pointermove', (e) => {
-        console.log('overlay move', wrap, e.globalX, e.globalY);
+        // console.log('overlay move', wrap, e.globalX, e.globalY);
         const card = wrap.getChildAt(0) as Card
         if(card){
             card.move(e.globalX, e.globalY, null);

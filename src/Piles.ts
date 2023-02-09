@@ -57,12 +57,12 @@ export class Piles extends PIXI.Container {
         }
     }
 
-    reveal(cardPos: string, face, next?) {
-        console.log(next)
-        let card = this.pack.find(x => x.pilePos == cardPos);
-        card.suit = face.suit;
-        card.rank = face.rank;
-        card.addFace(face);
-        card.flip();
-    }
+    // reveal(cardPos: string, face, next?) {
+    //     console.log(next)
+    //     let card = this.pack.find(x => x.pilePos == cardPos);
+    //     card.suit = face.suit;
+    //     card.rank = face.rank;
+    //     card.addFace(face);
+    //     card.flip();
+    // }
 }
