@@ -58,22 +58,28 @@ export class Card extends PIXI.Container {
                     this.removeChildren();
                     this.addBack();
                     // console.log(this.pilePos, 'see back');
-                    
+
                 } else {
                     this.fasingUp = true;
                     this.removeChildren();
                     this.addChild(this.face);
                     // console.log(this.pilePos, 'see front');
-                    
+
                 }
             }
         }, '<')
     }
 
     //basically all game rules are down here xD
-    public select(piles: Piles, deck: Deck, x: number, y: number) {
+    public select(piles: Piles, deck: Deck, x: number, y: number, overlay: PIXI.Sprite) {
         if (this.fasingUp) {
             this.moving = true;
+
+            let initX = this.x + this.parent.x
+            let initY = this.y + this.parent.y            
+
+            overlay.hitArea = new PIXI.Rectangle(0, 0, 1225, 840)
+            
             if (piles.pack.includes(this)) {
                 let [col, row] = this.pilePos.split('-').map(x => Number(x));
                 let len = piles.pilesState[col].length - 1;
@@ -84,18 +90,24 @@ export class Card extends PIXI.Container {
 
                     nextCards.forEach((c, i) => {
                         c.zIndex = 20;
-                        this.selectAnimation(c, x, y, i)
+                        this.selectAnimation(c, x, y, initX, initY, i);
+                        piles.removeChild(c);
+                        overlay.addChild(c);
                     });
                     return nextCards;
                 } else {
                     //single select
                     this.zIndex = 20;
-                    this.selectAnimation(this, x, y)
+                    piles.removeChild(this);
+                    overlay.addChild(this);
+                    this.selectAnimation(this, x, y, initX, initY);
                 }
             }
             else if (deck.revealedPack.includes(this)) {
                 //select from deck
-                this.selectAnimation(this, x, y)
+                deck.removeChild(this);
+                overlay.addChild(this);
+                this.selectAnimation(this, x, y, initX, initY);
             }
             return null;
 
@@ -110,18 +122,21 @@ export class Card extends PIXI.Container {
                     c.position.set(x - 90, y + ((i - 1) * 40))
                 })
             } else {
-                this.position.set(x - 90, y - 40)
+                this.position.set(x, y + 60)
             }
         }
     }
 
-    public place(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[], x: number, y: number, selected?: Card[]) {
+    public place(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[], x: number, y: number, overlay: PIXI.Sprite, selected?: Card[]) {
         if (this.moving) {
             let initX = 0;
             let initY = 0;
             let newPile = getPileByPos(x, y);
+            overlay.removeChildren();
+            overlay.hitArea = undefined;
 
             if (piles.pack.includes(this)) {
+                piles.addChild(this);
                 let [col, row] = this.pilePos.split('-').map(x => Number(x));
                 [initX, initY] = this.getInitPosition(col, row);
 
@@ -143,6 +158,7 @@ export class Card extends PIXI.Container {
                 }
 
             } else if (deck.revealedPack.includes(this)) {
+                deck.addChild(this);
                 [initX, initY] = [175, 0];
 
                 if (this.placeToPile(newPile, piles)) {
@@ -309,11 +325,11 @@ export class Card extends PIXI.Container {
         gsap.to(this, { pixi: { x: 60, y: 90, scale: 1, zIndex }, duration: 0.3, ease: 'back.out(1.7)' });
     }
 
-    private selectAnimation(card: Card, x: number, y: number, i?: number) {
-        y = y - 40
-        if (i>=1) {
+    private selectAnimation(card: Card, x: number, y: number, initX: number, initY: number, i?: number) {
+        y = y + 60
+        if (i >= 1) {
             y = y + (i * 40);
         }
-        gsap.to(card, { pixi: { x: x - 90, y, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
+        gsap.fromTo(card, {pixi: {x: initX, y: initY}}, { pixi: { x: x, y, scale: 1.1 }, duration: 0.3, ease: 'back.in(1.7)' });
     }
 }

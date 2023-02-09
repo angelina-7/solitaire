@@ -7,6 +7,7 @@ import { firework, getCards, ICardContainer, ICards } from "./util";
 import { Deck } from "./Deck";
 import { Piles } from "./Piles";
 import { Foundations } from "./Foundations";
+import { Card } from "./Card";
 
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
@@ -51,17 +52,34 @@ export function engine(connection: Connection) {
     function startGame(cards: ICards) {
         const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
         let allCards = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-    
+
         const shuffledDeck = allCards.sort((a, b) => 0.5 - Math.random());
-        
+
         let piles = new Piles(state.piles, allCards);
         let deck = new Deck();
         let foundations = new Foundations(foundationsInfo);
-    
-        userInteractions(piles, deck, foundations, shuffledDeck);
-    
-        app.stage.addChild(foundations, piles, deck);
+        let overlay = createOverlay();
+
+        userInteractions(piles, deck, foundations, shuffledDeck, overlay);
+
+        app.stage.addChild(foundations, piles, deck, overlay);
     }
+}
+
+function createOverlay() {
+    const wrap = new PIXI.Sprite();
+    wrap.interactive = true;
+    // wrap.hitArea = new PIXI.Rectangle(0,0, 1225, 840)
+
+    wrap.on('pointermove', (e) => {
+        console.log('overlay move', wrap, e.globalX, e.globalY);
+        const card = wrap.getChildAt(0) as Card
+        if(card){
+            card.move(e.globalX, e.globalY, null);
+        }
+    })
+
+    return wrap;
 }
 
 let elapsed = 0;
@@ -87,7 +105,7 @@ async function loadGame() {
     return cards;
 }
 
-function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[]) {
+function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, shuffledDeck: ICardContainer[], overlay: PIXI.Sprite) {
     deck.on('pointerdown', (e) => {
         if (e.x >= 10 && e.x <= 156 && e.y >= 10 && e.y <= 298) {
             if (deck.moves < 24) {
@@ -104,24 +122,24 @@ function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, sh
     allCards.forEach(c => {
         let selectedCards;
         c.on('pointerdown', (e) => {
-            selectedCards = c.select(piles, deck, e.globalX, e.globalY);
+            selectedCards = c.select(piles, deck, e.globalX, e.globalY, overlay);
         });
 
-        c.on('pointermove', (e) => {
-            if (selectedCards) {
-                c.move(e.globalX, e.globalY, selectedCards);
-            }
-            else {
-                c.move(e.globalX, e.globalY);
-            }
+        // c.on('pointermove', (e) => {
+        //     if (selectedCards) {
+        //         c.move(e.globalX, e.globalY, selectedCards);
+        //     }
+        //     else {
+        //         c.move(e.globalX, e.globalY);
+        //     }
 
-        });
+        // });
 
         c.on('pointerup', (e) => {
             if (selectedCards) {
-                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, selectedCards);
+                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, overlay, selectedCards);
             } else {
-                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY);
+                c.place(piles, deck, foundations, shuffledDeck, e.globalX, e.globalY, overlay);
             }
             selectedCards = null;
 
@@ -133,4 +151,14 @@ function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, sh
             }
         });
     });
+
+
 }
+
+// function move(overlay){
+//     overlay.on('pointermove', (e) => {
+//         console.log('overlay move', e.globalX, e.globalY);
+//         overlay.getChildAt(0).move(e.globalX, e.globalY, null);
+        
+//     })
+// }
