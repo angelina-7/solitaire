@@ -47,7 +47,7 @@ export class Deck extends PIXI.Container {
 
             //wait for animation onReveal to finish
             let revealed = this.revealedPack.length
-            for (let i = 0; i < revealed; i++) {
+            for (let j = 0; j < revealed; j++) {
                 let card: Card = this.revealedPack.shift();
 
                 card.flip();
@@ -78,6 +78,7 @@ export class Deck extends PIXI.Container {
     revealNextByAdding(cardInfo) {
         this.moves++;
         let card = this.pack.shift();
+        card.index =  24 - this.moves;
         card.suit = Suits[cardInfo.suit];
         card.rank = cardInfo.face - 1;
         card.pilePos = 'deal';
