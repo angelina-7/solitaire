@@ -111,32 +111,38 @@ export async function engine(connection: Connection) {
                     const sourcePileIndex = Number(move.source[4]);
                     const cardIndex = Number(move.index);
 
-                    // let prevCard;
-                    // if (cardIndex > 0) {
-                    //     let prevCardIndex = cardIndex - 1;
-                    //     prevCard = piles.pack.find(c => c.pilePos == `${sourcePileIndex}-${prevCardIndex}`);
-
-                    // }
-
                     let card = piles.pack.find(c => c.pilePos == `${sourcePileIndex}-${cardIndex}`);
                     // console.log(card);
 
                     if (move.target.includes('pile')) {
                         const pileIndex = Number(move.target[4]);
-                        card.place(data, piles, piles, overlay, pileIndex, () => { })
+                        if (overlay.children.length > 1) {
+                            card.place(data, piles, piles, overlay, pileIndex, overlay.children.map(c => (c as Card)))
+                        } else {
+                            card.place(data, piles, piles, overlay, pileIndex)
+                        }
                     } else if (Object.keys(Suits).includes(move.target)) {
-                        card.place(data, piles, foundations, overlay, move.target, () => { })
+                        card.place(data, piles, foundations, overlay, move.target)
                     }
 
-                    if (data && (cardIndex - 1) >= 0) {
-                        move = {
-                            action: 'flip',
-                            source: 'pile' + sourcePileIndex,
-                            target: null,
-                            index: cardIndex - 1,
-                        };
+                    if (data) {
+                        let prevCardIndex = cardIndex - 1;
+                        let prevCard = piles.pack.find(c => c.pilePos == `${sourcePileIndex}-${prevCardIndex}`);
+
+                        console.log(prevCard);
                         
-                        connection.send('move', move);
+                        if (prevCard && !prevCard.fasingUp) {
+                            move = {
+                                action: 'flip',
+                                source: 'pile' + sourcePileIndex,
+                                target: null,
+                                index: cardIndex - 1,
+                            };
+
+                            connection.send('move', move);
+                        } else {
+                            move = null
+                        }
                     }
 
                 }
@@ -166,9 +172,6 @@ export async function engine(connection: Connection) {
 
         //all cards have listeners but triggered only when fasing up
         allCards.forEach(c => {
-
-            let selectedCards;
-
             c.on('pointerdown', (e) => {
                 // console.log(c.location);
 
@@ -202,7 +205,7 @@ export async function engine(connection: Connection) {
 
                 connection.send('move', move);
 
-                selectedCards = c.select(piles, deck, e.globalX, e.globalY, overlay);
+                c.select(piles, deck, e.globalX, e.globalY, overlay);
             });
 
             // c.on('pointermove', (e) => {
@@ -262,10 +265,12 @@ function createOverlay() {
     // wrap.hitArea = new PIXI.Rectangle(0,0, 1225, 840)
 
     wrap.on('pointermove', (e) => {
-        // console.log('overlay move', wrap, e.globalX, e.globalY);
-        const card = wrap.getChildAt(0) as Card
-        if (card) {
+        if (wrap.children.length == 1) {
+            const card = wrap.getChildAt(0) as Card
             card.move(e.globalX, e.globalY, null);
+        } else if (wrap.children.length > 1) {
+            const card = wrap.getChildAt(0) as Card
+            card.move(e.globalX, e.globalY, wrap.children.map(c => (c as Card)));
         }
     })
 
