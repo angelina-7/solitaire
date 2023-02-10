@@ -85,6 +85,16 @@ export async function engine(connection: Connection) {
                             deck.revealNext();
                         }
                     }
+                } else {
+                    let pileIndex = move.source.slice(-1);
+                    let cardToFlip = piles.pack.find(c => c.pilePos == `${pileIndex}-${move.index}`);
+                    cardToFlip.suit = Suits[data.suit];
+                    cardToFlip.rank = data.face - 1;
+
+                    let cardFace = allCards.find(x => x.suit == cardToFlip.suit && x.rank == cardToFlip.rank);
+
+                    cardToFlip.addFace(cardFace);
+                    cardToFlip.flip();
                 }
             } else if (move.action == 'place') {
                 if (move.source == 'stock') {
@@ -101,6 +111,13 @@ export async function engine(connection: Connection) {
                     const sourcePileIndex = Number(move.source[4]);
                     const cardIndex = Number(move.index);
 
+                    // let prevCard;
+                    // if (cardIndex > 0) {
+                    //     let prevCardIndex = cardIndex - 1;
+                    //     prevCard = piles.pack.find(c => c.pilePos == `${sourcePileIndex}-${prevCardIndex}`);
+
+                    // }
+
                     let card = piles.pack.find(c => c.pilePos == `${sourcePileIndex}-${cardIndex}`);
                     // console.log(card);
 
@@ -111,16 +128,17 @@ export async function engine(connection: Connection) {
                         card.place(data, piles, foundations, overlay, move.target, () => { })
                     }
 
-                    if (data) {
+                    if (data && (cardIndex - 1) >= 0) {
                         move = {
                             action: 'flip',
                             source: 'pile' + sourcePileIndex,
                             target: null,
                             index: cardIndex - 1,
                         };
-
+                        
                         connection.send('move', move);
                     }
+
                 }
 
             }
@@ -166,7 +184,7 @@ export async function engine(connection: Connection) {
                     action = 'flip';
                     index = Number(c.index);
                 } else {
-                    index = c.pilePos.split('-')[1];
+                    index = Number(c.pilePos.split('-')[1]);
                 }
 
                 move = {
@@ -222,6 +240,16 @@ export async function engine(connection: Connection) {
                     };
 
                     connection.send('move', move);
+
+                    // if (type == 'pile') {
+
+                    //     connection.send('move', {
+                    //         action: 'flip',
+                    //         source: 'pile' + c.pilePos.split('-')[0],
+                    //         target: 'pile' + target,
+                    //         index: index - 1,
+                    //     });
+                    // }
                 }
             });
         })
