@@ -38,6 +38,7 @@ export async function engine(connection: Connection) {
     connection.on('state', onState);
     connection.on('moves', onMoves);
     connection.on('moveResult', onResult);
+    connection.on('victory', onVictory);
 
     const foundationsInfo = [['clubs', 'assets/clubs.svg'], ['hearts', 'assets/hearts.svg'], ['spades', 'assets/spades.svg'], ['diamonds', 'assets/diamonds.svg']];
     let spreadsheet = await PIXI.Assets.load<PIXI.BaseTexture>('assets/deck.jpg');
@@ -45,12 +46,12 @@ export async function engine(connection: Connection) {
 
     let allCards = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
     // const shuffledDeck = allCards.sort((a, b) => 0.5 - Math.random());
-    
+
     let deck = new Deck(allCards);
     let piles = new Piles(state.piles, allCards);
     let foundations = new Foundations(foundationsInfo);
     let overlay = createOverlay();
-    
+
     actionSection.innerHTML = '';
     boardSection.innerHTML = '';
 
@@ -77,17 +78,19 @@ export async function engine(connection: Connection) {
         if (move != null) {
             if (move.action == 'flip') {
                 if (move.source == 'stock') {
-                    if (deck.moves < 24) {
-                        deck.revealNext(data);
-                    } else {
-                        deck.revealNext();
+                    if (data != null) {
+                        if (deck.moves < 24) {
+                            deck.revealNext(data);
+                        } else {
+                            deck.revealNext();
+                        }
                     }
                 }
-            }else if (move.action == 'place') {
+            } else if (move.action == 'place') {
                 if (move.source == 'stock') {
                     let card = deck.revealedPack.find(c => c.index == move.index);
-                    console.log(card);
-                    
+                    // console.log(card);
+
                     if (move.target.includes('pile')) {
                         const pileIndex = Number(move.target[4]);
                         card.place(data, deck, piles, overlay, pileIndex)
@@ -99,13 +102,24 @@ export async function engine(connection: Connection) {
                     const cardIndex = Number(move.index);
 
                     let card = piles.pack.find(c => c.pilePos == `${sourcePileIndex}-${cardIndex}`);
-                    console.log(card);
-                    
+                    // console.log(card);
+
                     if (move.target.includes('pile')) {
                         const pileIndex = Number(move.target[4]);
                         card.place(data, piles, piles, overlay, pileIndex, () => { })
                     } else if (Object.keys(Suits).includes(move.target)) {
                         card.place(data, piles, foundations, overlay, move.target, () => { })
+                    }
+
+                    if (data) {
+                        move = {
+                            action: 'flip',
+                            source: 'pile' + sourcePileIndex,
+                            target: null,
+                            index: cardIndex - 1,
+                        };
+
+                        connection.send('move', move);
                     }
                 }
 
@@ -113,23 +127,31 @@ export async function engine(connection: Connection) {
         }
     }
 
+    function onVictory() {
+        for (let i = 0; i < 25; i++) {
+            const sparkles = firework(150 + Math.random() * 900, 100 + Math.random() * 640, ((Math.random() * 256 | 0) << 16) + ((Math.random() * 256 | 0) << 8) + (Math.random() * 256 | 0));
+            app.stage.addChild(sparkles);
+        }
+    }
+
     function startGame(deck, piles, foundations, overlay) {
 
         userInteractions(piles, deck, foundations, overlay);
-    
+
         app.stage.addChild(foundations, piles, deck, overlay);
     }
 
     function userInteractions(piles: Piles, deck: Deck, foundations: Foundations, overlay: PIXI.Sprite) {
         const allCards = [...piles.pack, ...deck.pack];
-    
+
+        deck.onClickRetry(connection, move);
+
         //all cards have listeners but triggered only when fasing up
         allCards.forEach(c => {
 
             let selectedCards;
 
             c.on('pointerdown', (e) => {
-
                 // console.log(c.location);
 
                 let action = 'take';
@@ -146,7 +168,7 @@ export async function engine(connection: Connection) {
                 } else {
                     index = c.pilePos.split('-')[1];
                 }
-    
+
                 move = {
                     action,
                     source: type,
@@ -156,18 +178,15 @@ export async function engine(connection: Connection) {
 
                 if (type == 'pile') {
                     move.source += pileIndex;
+                } else if (type == 'stock') {
+                    move.index = Number(c.index);
                 }
-                //todo: index not working with take and place actions -> ref: server -> Game.js row: 75, 137
-
-                // else if(type == 'stock'){
-                //     move.index = Number(c.index);
-                // }
 
                 connection.send('move', move);
 
                 selectedCards = c.select(piles, deck, e.globalX, e.globalY, overlay);
             });
-    
+
             // c.on('pointermove', (e) => {
             //     if (selectedCards) {
             //         c.move(e.globalX, e.globalY, selectedCards);
@@ -175,9 +194,9 @@ export async function engine(connection: Connection) {
             //     else {
             //         c.move(e.globalX, e.globalY);
             //     }
-    
+
             // });
-    
+
             c.on('pointerup', (e) => {
                 if (c.moving) {
                     let action = 'place'
@@ -217,7 +236,7 @@ function createOverlay() {
     wrap.on('pointermove', (e) => {
         // console.log('overlay move', wrap, e.globalX, e.globalY);
         const card = wrap.getChildAt(0) as Card
-        if(card){
+        if (card) {
             card.move(e.globalX, e.globalY, null);
         }
     })

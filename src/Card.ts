@@ -70,7 +70,7 @@ export class Card extends PIXI.Container {
 
                 }
             }
-        }, '<')
+        }, '<')        
     }
 
     //basically all game rules are down here xD

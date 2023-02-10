@@ -8,6 +8,7 @@ export class Deck extends PIXI.Container {
     public pack: Card[] = [];
     public revealedPack: Card[] = [];
     public moves: number = 0;
+    private retry;
 
     constructor(public allCards) {
         super();
@@ -23,7 +24,7 @@ export class Deck extends PIXI.Container {
         this.sortableChildren = true;
         this.addChild(...this.pack);
 
-        let retry = new PIXI.Container();
+        this.retry = new PIXI.Container();
 
         let bt = new PIXI.Graphics();
         bt.beginFill(0xffffff);
@@ -34,25 +35,38 @@ export class Deck extends PIXI.Container {
         retrySprite.scale.set(0.3);
         retrySprite.anchor.set(0.5);
 
-        retry.addChild(bt, retrySprite);
+        this.retry.addChild(bt, retrySprite);
 
-        this.addChildAt(retry, 0);
+        this.addChildAt(this.retry, 0);
 
-        retry.interactive = true;
+        this.retry.interactive = true;
 
-        retry.on('pointerdown', () => {
+        
+    }
+
+    onClickRetry(connection, move){
+        this.retry.on('pointerdown', () => {
             console.log('retry');
 
             const tl = gsap.timeline({ defaults: { duration: 0.05 } });
 
+            move = {
+                action: 'flip',
+                source: 'stock',
+                target: null,
+                index: 0
+            };
+            connection.send('move', move);
+
             //wait for animation onReveal to finish
             let revealed = this.revealedPack.length
             for (let i = 0; i < revealed; i++) {
-                let card: Card = this.revealedPack.shift();
-
+                let card: Card = this.revealedPack.pop();
+                
                 card.flip();
                 tl.to(card, { x: 0, ease: 'none' });
                 this.pack.push(card);
+                card.index = this.pack.indexOf(card)
             }
         });
     }
@@ -65,11 +79,13 @@ export class Deck extends PIXI.Container {
                 this.revealNextByAdding(cardInfo);
             } else {
                 if (this.pack.length > 0) {
-                    let card = this.pack.shift();
+                    let card = this.pack.pop();
                     card.flip();
                     gsap.to(card, { x: 175 });
 
                     this.revealedPack.push(card);
+                    card.index = this.revealedPack.indexOf(card)
+                    card.zIndex = card.index;
                 }
             }
         }
@@ -77,11 +93,13 @@ export class Deck extends PIXI.Container {
 
     revealNextByAdding(cardInfo) {
         this.moves++;
-        let card = this.pack.shift();
+        let card = this.pack.pop();
         card.suit = Suits[cardInfo.suit];
         card.rank = cardInfo.face - 1;
         card.pilePos = 'deal';
         this.revealedPack.push(card);
+        card.index = this.revealedPack.indexOf(card)
+        card.zIndex = card.index;
 
         let cardFace = this.allCards.find(x => x.suit == card.suit && x.rank == card.rank);
 
