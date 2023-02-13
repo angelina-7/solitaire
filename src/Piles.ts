@@ -11,15 +11,21 @@ export class Piles extends PIXI.Container {
     constructor(public state: Object, public allCards: any) {
         super();
 
-        for (let i = 0; i < 28; i++) {
+        let cardsInPiles = this.calcCards();
+        for (let i = 0; i < cardsInPiles; i++) {
             this.pack.push(new Card());
         }
 
-        this.position.set(90, 120);
+        this.position.set(90, 160);
         this.sortableChildren = true;
         this.addChild(...this.pack);
 
         this.dealCards()
+    }
+
+    private calcCards() {
+        return this.state[0].cards.length + this.state[1].cards.length + this.state[2].cards.length + this.state[3].cards.length
+            + this.state[4].cards.length + this.state[5].cards.length + this.state[6].cards.length;
     }
 
     get pilesState(): Card[][] {
@@ -33,26 +39,31 @@ export class Piles extends PIXI.Container {
         for (let pile = 0; pile < 7; pile++) {
             this.pilesState.push([]);
 
-            for (let n = 0; n < 7; n++) {
-                if (n <= pile) {
-                    let card = this.pack[i];
-                    card.pilePos = `${pile}-${n}`;
-                    card.location = 'pile';
+            let currCardArr = this.state[pile].cards;
+            for (let n = 0; n < currCardArr.length; n++) {
+                let card = this.pack[i];
+                card.pilePos = `${pile}-${n}`;
+                card.location = 'pile';
+
+                if (currCardArr[n].faceUp) {
                     card.rank = this.state[pile].cards[n].face - 1;
                     card.suit = Suits[this.state[pile].cards[n].suit];
+                }
 
-                    card.interactive = true;
-                    this.pilesState[pile].push(card);
-                    
-                    tl.to(card, { x: getPilePosX(pile), y: 200 + (n * 40), duration: 0.15, onComplete: () => {
+                card.interactive = true;
+                this.pilesState[pile].push(card);
+
+                tl.to(card, {
+                    x: getPilePosX(pile), y: 200 + (n * 40), duration: 0.15, onComplete: () => {
                         if (card.rank != null && card.suit != null) {
                             let cardFace = this.allCards.find(x => x.suit == card.suit && x.rank == card.rank);
                             card.addFace(cardFace);
                             card.flip();
                         }
-                    } });
-                    i++;
-                }
+                    }
+                });
+
+                i++;
             }
         }
     }

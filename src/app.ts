@@ -19,17 +19,17 @@ initForm.addEventListener('submit', async event => {
     connection.send('startGame');
 });
 
-document.getElementById('disconnect').addEventListener('click', () => {
-    connection?.disconnect();
-    showInit();
-});
+// document.getElementById('disconnect').addEventListener('click', () => {
+//     connection?.disconnect();
+//     showInit();
+// });
 
 function showBoard() {
     initSection.style.display = 'none';
     gameSection.style.display = 'block';
 }
 
-function showInit() {
-    initSection.style.display = 'block';
-    gameSection.style.display = 'none';
-}
+// function showInit() {
+//     initSection.style.display = 'block';
+//     gameSection.style.display = 'none';
+// }

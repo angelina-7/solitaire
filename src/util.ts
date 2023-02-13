@@ -124,7 +124,7 @@ export function getPilePosX(pile: number): number {
 export function getPileByPos(x: number, y: number, currPile?): number | string {
     let pile: number;
 
-    if (y < 210) {
+    if (y < 250) {
         if (x < 450) {
             return 'deal';
         } else if (x < 700) {
@@ -139,19 +139,19 @@ export function getPileByPos(x: number, y: number, currPile?): number | string {
 
     } else {
 
-        if (x <= 175 && y >= 210) {        
+        if (x <= 175 && y >= 250) {        
             pile = 0;
-        } else if (x <= 350 && y >= 210) { 
+        } else if (x <= 350 && y >= 250) { 
             pile = 1;
-        } else if (x <= 525 && y >= 210) { 
+        } else if (x <= 525 && y >= 250) { 
             pile = 2;
-        } else if (x <= 700 && y >= 210) { 
+        } else if (x <= 700 && y >= 250) { 
             pile = 3;
-        } else if (x <= 875 && y >= 210) { 
+        } else if (x <= 875 && y >= 250) { 
             pile = 4;
-        } else if (x <= 1050 && y >= 210) {
+        } else if (x <= 1050 && y >= 250) {
             pile = 5;
-        } else if (x <= 1250 && y >= 210) {
+        } else if (x <= 1250 && y >= 250) {
             pile = 6;
         } else {
             pile = currPile;

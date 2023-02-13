@@ -169,9 +169,9 @@ export class Card extends PIXI.Container {
         } else if (from instanceof Deck) {
             from.addChildAt(this, this.index + 1);
             [initX, initY] = [175, 0];
-            this.index = null
-
+            
             if (doPlace) {
+                this.index = null
                 if (to instanceof Piles) {
                     this.location = 'pile'
                     this.fromDeck(from, to, Number(newPile))
@@ -183,6 +183,17 @@ export class Card extends PIXI.Container {
                 this.returnBackAnimation(initX, initY);
             }
         }
+    }
+
+    public placeBackToDeck(deck: Deck, overlay: PIXI.Sprite){
+        this.moving = false;
+        overlay.removeChildren();
+        overlay.hitArea = undefined;
+
+        deck.addChildAt(this, this.index + 1);
+        let [initX, initY] = [175, 0];
+
+        this.returnBackAnimation(initX, initY);
     }
 
 

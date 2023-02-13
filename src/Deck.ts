@@ -10,19 +10,41 @@ export class Deck extends PIXI.Container {
     public moves: number = 0;
     private retry;
 
-    constructor(public allCards) {
+    constructor(public packState, public revealedState, public allCards) {
         super();
-        this.position.set(90, 120);
+        this.position.set(90, 160);
 
-        for (let i = 0; i < 24; i++) {
+        this.moves = 24 - packState.cards.length
+
+        for (let i = 0; i < packState.cards.length; i++) {
             let card = new Card();
             card.location = 'stock';
             card.index = i;
             this.pack.push(card);
         }
 
+        for (let i = 0; i < revealedState.cards.length; i++) {
+            let cardInfo = revealedState.cards[i]
+            let card = new Card();
+            card.location = 'stock';
+            card.index = i;
+            card.zIndex = i;
+            card.suit = Suits[cardInfo.suit];
+            card.rank = cardInfo.face - 1;
+            card.pilePos = 'deal';
+            card.interactive = true;
+
+            this.revealedPack.push(card);
+
+            let cardFace = this.allCards.find(x => x.suit == card.suit && x.rank == card.rank);
+
+            card.addFace(cardFace);
+            card.flip();
+            gsap.to(card, { x: 175 });
+        }
+
         this.sortableChildren = true;
-        this.addChild(...this.pack);
+        this.addChild(...this.pack, ...this.revealedPack);
 
         this.retry = new PIXI.Container();
 
@@ -41,10 +63,10 @@ export class Deck extends PIXI.Container {
 
         this.retry.interactive = true;
 
-        
+
     }
 
-    onClickRetry(connection, move){
+    onClickRetry(connection, move) {
         this.retry.on('pointerdown', () => {
             console.log('retry');
 
@@ -62,7 +84,7 @@ export class Deck extends PIXI.Container {
             let revealed = this.revealedPack.length
             for (let i = 0; i < revealed; i++) {
                 let card: Card = this.revealedPack.pop();
-                
+
                 card.flip();
                 tl.to(card, { x: 0, ease: 'none' });
                 this.pack.push(card);

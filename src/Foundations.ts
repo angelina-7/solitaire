@@ -1,9 +1,10 @@
 import * as PIXI from 'pixi.js';
-import { IFoundationContainer } from './util';
+import { Card } from './Card';
+import { IFoundationContainer, Suits } from './util';
 
 export class Foundations extends PIXI.Container {
 
-    constructor(private foundationsInfo: string[][]) {
+    constructor(public state, private foundationsInfo: string[][], private allCards) {
         super();
 
         this.sortableChildren = true;
@@ -27,7 +28,27 @@ export class Foundations extends PIXI.Container {
             picture.position.set(60, 90);
 
             container.addChild(fnd, picture);
-            container.position.set(555 + i * 175, 30);
+            container.position.set(555 + i * 175, 70);
+
+            for (let i = 0; i < state[color].cards.length; i++) {
+                let cardInfo = state[color].cards[i];
+
+                let card = new Card();
+                card.location = color;
+                card.zIndex = i;
+                card.suit = Suits[cardInfo.suit];
+                card.rank = cardInfo.face - 1;
+                card.pilePos = color;
+                card.interactive = false;
+
+                card.position.set(60,90)
+                container.addChild(card);
+
+                let cardFace = this.allCards.find(x => x.suit == card.suit && x.rank == card.rank);
+
+                card.addFace(cardFace);
+                card.flip();
+            }
 
             this.addChild(container);
         }
