@@ -173,7 +173,7 @@ async function startGame() {
     const cards = getCards(spreadsheet);
 
     allCards = [...cards.s, ...cards.d, ...cards.c, ...cards.h];
-    
+
     deck = new Deck(state.stock, state.waste, allCards);
     piles = new Piles(state.piles, allCards);
     foundations = new Foundations(state.foundations, foundationsInfo, allCards);
@@ -289,6 +289,9 @@ function update(dt) {
             else time.text = `Time: ${min}:${sec}`;
         }
 
+        movesTxt.text = 'Moves: ' + movesMade;
+    } else {
+        time.text = `Time: 00:00`;
         movesTxt.text = 'Moves: ' + movesMade;
     }
     //movesMade == 1 -> show time on screen 
